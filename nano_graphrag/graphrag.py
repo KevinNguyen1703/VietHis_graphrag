@@ -31,6 +31,7 @@ from ._storage import (
     JsonKVStorage,
     NanoVectorDBStorage,
     NetworkXStorage,
+    Neo4jStorage
 )
 from ._utils import (
     EmbeddingFunc,
@@ -47,6 +48,7 @@ from .base import (
     StorageNameSpace,
     QueryParam,
 )
+
 
 
 @dataclass
@@ -126,7 +128,7 @@ class GraphRAG:
     key_string_value_json_storage_cls: Type[BaseKVStorage] = JsonKVStorage
     vector_db_storage_cls: Type[BaseVectorStorage] = NanoVectorDBStorage
     vector_db_storage_cls_kwargs: dict = field(default_factory=dict)
-    graph_storage_cls: Type[BaseGraphStorage] = NetworkXStorage
+    graph_storage_cls: Type[BaseGraphStorage] = Neo4jStorage
     enable_llm_cache: bool = True
 
     # extension
@@ -290,6 +292,9 @@ class GraphRAG:
             _add_chunk_keys = await self.text_chunks.filter_keys(
                 list(inserting_chunks.keys())
             )
+            for i in inserting_chunks.keys():
+                print(inserting_chunks[i])
+                print("---------------------\n---------------------\n---------------------\n---------------------")
             inserting_chunks = {
                 k: v for k, v in inserting_chunks.items() if k in _add_chunk_keys
             }
@@ -297,6 +302,7 @@ class GraphRAG:
                 logger.warning(f"All chunks are already in the storage")
                 return
             logger.info(f"[New Chunks] inserting {len(inserting_chunks)} chunks")
+
             if self.enable_naive_rag:
                 logger.info("Insert chunks for naive RAG")
                 await self.chunks_vdb.upsert(inserting_chunks)
@@ -322,9 +328,9 @@ class GraphRAG:
             await self.chunk_entity_relation_graph.clustering(
                 self.graph_cluster_algorithm
             )
-            await generate_community_report(
-                self.community_reports, self.chunk_entity_relation_graph, asdict(self)
-            )
+            # await generate_community_report(
+            #     self.community_reports, self.chunk_entity_relation_graph, asdict(self)
+            # )
 
             # ---------- commit upsertings and indexing
             await self.full_docs.upsert(new_docs)

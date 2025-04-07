@@ -8,320 +8,259 @@ PROMPTS = {}
 
 PROMPTS[
     "claim_extraction"
-] = """-Target activity-
-You are an intelligent assistant that helps a human analyst to analyze claims against certain entities presented in a text document.
+] = """-Hoạt động mục tiêu-
+Bạn là trợ lý thông minh giúp người phân tích xử lý và phân tích các tuyên bố đối với các thực thể lịch sử trong tài liệu văn bản.
 
--Goal-
-Given a text document that is potentially relevant to this activity, an entity specification, and a claim description, extract all entities that match the entity specification and all claims against those entities.
+-Mục tiêu-
+Dựa trên tài liệu văn bản, thông số thực thể, và mô tả tuyên bố, trích xuất các thực thể phù hợp và các tuyên bố liên quan đến chúng.
 
--Steps-
-1. Extract all named entities that match the predefined entity specification. Entity specification can either be a list of entity names or a list of entity types.
-2. For each entity identified in step 1, extract all claims associated with the entity. Claims need to match the specified claim description, and the entity should be the subject of the claim.
-For each claim, extract the following information:
-- Subject: name of the entity that is subject of the claim, capitalized. The subject entity is one that committed the action described in the claim. Subject needs to be one of the named entities identified in step 1.
-- Object: name of the entity that is object of the claim, capitalized. The object entity is one that either reports/handles or is affected by the action described in the claim. If object entity is unknown, use **NONE**.
-- Claim Type: overall category of the claim, capitalized. Name it in a way that can be repeated across multiple text inputs, so that similar claims share the same claim type
-- Claim Status: **TRUE**, **FALSE**, or **SUSPECTED**. TRUE means the claim is confirmed, FALSE means the claim is found to be False, SUSPECTED means the claim is not verified.
-- Claim Description: Detailed description explaining the reasoning behind the claim, together with all the related evidence and references.
-- Claim Date: Period (start_date, end_date) when the claim was made. Both start_date and end_date should be in ISO-8601 format. If the claim was made on a single date rather than a date range, set the same date for both start_date and end_date. If date is unknown, return **NONE**.
-- Claim Source Text: List of **all** quotes from the original text that are relevant to the claim.
+-Các bước-
+1. Trích xuất tất cả các thực thể được đặt tên phù hợp với thông số kỹ thuật thực thể đã được xác định trước. Chi tiết thực thể có thể là một danh sách các tên thực thể hoặc một danh sách các loại thực thể.
+- Đối với thực thể dạng sự kiện, hãy kèm với năm diễn ra. Ví dụ: Điện Biên Phủ (1954), Thành lập Mặt Trận Liên Việt (1951)
+- Đối với thực thể dạng thời gian, hoặc khoảng thời gian chỉ cần giữ lại số năm. Ví dụ: 1958, 1963-1964 (cho khoảng thời gian), X-XII (cho khoảng thời gian dạng thế kỉ)
+- Đối với thực thể dạng người hãy thêm các chức vụ (nếu có). Ví dụ: 'Chủ tịch Hồ Chí Minh' thay vì 'Hồ Chí Minh', 'Đại tướng Võ Nguyên Giáp' thay vì 'Võ Nguyên Giáp'
+2. Đối với mỗi thực thể được xác định trong bước 1, trích xuất tất cả các tuyên bố liên quan đến thực thể đó. Các tuyên bố cần phải phù hợp với mô tả tuyên bố đã được xác định, và thực thể đó phải là chủ thể của tuyên bố. 
+Các tuyên bố có thể bao gồm các ý nghĩa lịch sử, mục tiêu, nguyên nhân, nhiệm vụ (nếu có). Đối với mỗi tuyên bố, trích xuất thông tin sau:
+- Subject: tên của thực thể là chủ thể của tuyên bố, viết hoa. Thực thể chủ thể là thực thể thực hiện hành động được mô tả trong tuyên bố. Chủ thể cần phải là một trong các thực thể đã được xác định trong bước 1.
+- Object: tên của thực thể là đối tượng của tuyên bố, viết hoa. Thực thể đối tượng là thực thể mà hành động được mô tả trong tuyên bố ảnh hưởng đến hoặc xử lý. Nếu đối tượng không biết, sử dụng NONE.
+- Claim Type: danh mục tổng thể của tuyên bố, viết hoa. Đặt tên sao cho có thể lặp lại trên nhiều đầu vào văn bản, để các tuyên bố tương tự có cùng một loại tuyên bố.
+- Claim Status: TRUE, FALSE, hoặc SUSPECTED. TRUE có nghĩa là tuyên bố được xác nhận, FALSE có nghĩa là tuyên bố bị phát hiện là sai, SUSPECTED có nghĩa là tuyên bố chưa được xác minh.
+- Claim Description: Mô tả chi tiết giải thích lý do đằng sau tuyên bố, cùng với tất cả các bằng chứng và tài liệu tham khảo liên quan.
+- Claim Date: Khoảng thời gian (start_date, end_date) khi tuyên bố được đưa ra. Cả start_date và end_date đều phải ở định dạng ISO-8601. Nếu tuyên bố được đưa ra vào một ngày duy nhất thay vì một phạm vi ngày, đặt cùng ngày cho cả start_date và end_date. Nếu ngày không biết, trả về NONE.
+- Claim Source Text: Danh sách tất cả các trích dẫn từ văn bản gốc liên quan đến tuyên bố.
 
-Format each claim as (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
+Định dạng mỗi tuyên bố dưới dạng (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
 
-3. Return output in English as a single list of all the claims identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Trả về kết quả bằng tiếng Việt dưới dạng một danh sách duy nhất gồm tất cả các thực thể và mối quan hệ đã xác định ở bước 1 và 2. Sử dụng {record_delimiter} làm dấu phân cách cho danh sách.
 
-4. When finished, output {completion_delimiter}
+4. Khi hoàn thành, xuất {completion_delimiter}
 
--Examples-
-Example 1:
-Entity specification: organization
-Claim description: red flags associated with an entity
-Text: According to an article on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B. The company is owned by Person C who was suspected of engaging in corruption activities in 2015.
+######################
+
+######################
+-Ví dụ-
+######################
+Ví dụ 1:
+Entity specification: person
+Claim description: ý nghĩa lịch sử của một người
+Text: Theo bài viết ngày 01/06/1965, Hồ Chí Minh đã ký một sắc lệnh quan trọng nhằm tăng cường sức mạnh quốc phòng của Việt Nam trong bối cảnh chiến tranh. Sắc lệnh này đã giúp tăng cường sự chuẩn bị của quân đội và củng cố vị thế của Việt Nam trên trường quốc tế.
+
 Output:
 
-(COMPANY A{tuple_delimiter}GOVERNMENT AGENCY B{tuple_delimiter}ANTI-COMPETITIVE PRACTICES{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Company A was found to engage in anti-competitive practices because it was fined for bid rigging in multiple public tenders published by Government Agency B according to an article published on 2022/01/10{tuple_delimiter}According to an article published on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B.)
+(CHỦ TỊCH HỒ CHÍ MINH{tuple_delimiter}VIỆT NAM{tuple_delimiter}Ý NGHĨA LỊCH SỬ{tuple_delimiter}TRUE{tuple_delimiter}1965-06-01T00:00:00{tuple_delimiter}1965-06-01T00:00:00{tuple_delimiter}Chủ tịch Hồ Chí Minh được biết đến là người đã ký một sắc lệnh quan trọng nhằm tăng cường sức mạnh quốc phòng của Việt Nam trong bối cảnh chiến tranh, góp phần củng cố vị thế quốc gia và quân đội theo bài viết ngày 01/06/1965{tuple_delimiter}Theo bài viết ngày 01/06/1965, Hồ Chí Minh đã ký một sắc lệnh quan trọng nhằm tăng cường sức mạnh quốc phòng của Việt Nam trong bối cảnh chiến tranh. Sắc lệnh này đã giúp tăng cường sự chuẩn bị của quân đội và củng cố vị thế của Việt Nam trên trường quốc tế.)
 {completion_delimiter}
 
-Example 2:
-Entity specification: Company A, Person C
+
+Ví dụ 2:
+Entity specification: person, organization
 Claim description: red flags associated with an entity
-Text: According to an article on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B. The company is owned by Person C who was suspected of engaging in corruption activities in 2015.
+Text: Theo một bài viết ngày 01/07/1945, Đại tướng Võ Nguyên Giáp đã chỉ đạo các chiến lược quân sự quan trọng trong trận chiến Điện Biên Phủ. Ông cũng bị tuyên bố đã vi phạm chỉ thị của Bộ Chính trị trong một số quyết định chiến lược trong suốt cuộc kháng chiến chống Pháp.
+
 Output:
 
-(COMPANY A{tuple_delimiter}GOVERNMENT AGENCY B{tuple_delimiter}ANTI-COMPETITIVE PRACTICES{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Company A was found to engage in anti-competitive practices because it was fined for bid rigging in multiple public tenders published by Government Agency B according to an article published on 2022/01/10{tuple_delimiter}According to an article published on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B.)
+(VÕ NGUYÊN GIÁP{tuple_delimiter}NONE{tuple_delimiter}STRATEGIC DECISIONS{tuple_delimiter}TRUE{tuple_delimiter}1945-07-01T00:00:00{tuple_delimiter}1945-07-01T00:00:00{tuple_delimiter}Võ Nguyên Giáp được biết đến với vai trò quan trọng trong việc chỉ đạo các chiến lược quân sự trong trận Điện Biên Phủ theo bài viết ngày 01/07/1945{tuple_delimiter}Theo một bài viết ngày 01/07/1945, Đại tướng Võ Nguyên Giáp đã chỉ đạo các chiến lược quân sự quan trọng trong trận chiến Điện Biên Phủ.)
+
 {record_delimiter}
-(PERSON C{tuple_delimiter}NONE{tuple_delimiter}CORRUPTION{tuple_delimiter}SUSPECTED{tuple_delimiter}2015-01-01T00:00:00{tuple_delimiter}2015-12-30T00:00:00{tuple_delimiter}Person C was suspected of engaging in corruption activities in 2015{tuple_delimiter}The company is owned by Person C who was suspected of engaging in corruption activities in 2015)
+
+(VÕ NGUYÊN GIÁP{tuple_delimiter}NONE{tuple_delimiter}STRATEGIC VIOLATIONS{tuple_delimiter}SUSPECTED{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}Võ Nguyên Giáp bị tuyên bố đã vi phạm chỉ thị của Bộ Chính trị trong một số quyết định chiến lược trong suốt cuộc kháng chiến chống Pháp{tuple_delimiter}Ông cũng bị tuyên bố đã vi phạm chỉ thị của Bộ Chính trị trong một số quyết định chiến lược trong suốt cuộc kháng chiến chống Pháp.)
 {completion_delimiter}
 
 -Real Data-
-Use the following input for your answer.
+Sử dụng thông tin sau đây để trả lời
 Entity specification: {entity_specs}
 Claim description: {claim_description}
 Text: {input_text}
-Output: """
-
-PROMPTS[
-    "community_report"
-] = """You are an AI assistant that helps a human analyst to perform general information discovery. 
-Information discovery is the process of identifying and assessing relevant information associated with certain entities (e.g., organizations and individuals) within a network.
-
-# Goal
-Write a comprehensive report of a community, given a list of entities that belong to the community as well as their relationships and optional associated claims. The report will be used to inform decision-makers about information associated with the community and their potential impact. The content of this report includes an overview of the community's key entities, their legal compliance, technical capabilities, reputation, and noteworthy claims.
-
-# Report Structure
-
-The report should include the following sections:
-
-- TITLE: community's name that represents its key entities - title should be short but specific. When possible, include representative named entities in the title.
-- SUMMARY: An executive summary of the community's overall structure, how its entities are related to each other, and significant information associated with its entities.
-- IMPACT SEVERITY RATING: a float score between 0-10 that represents the severity of IMPACT posed by entities within the community.  IMPACT is the scored importance of a community.
-- RATING EXPLANATION: Give a single sentence explanation of the IMPACT severity rating.
-- DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
-
-Return output as a well-formed JSON-formatted string with the following format:
-    {{
-        "title": <report_title>,
-        "summary": <executive_summary>,
-        "rating": <impact_severity_rating>,
-        "rating_explanation": <rating_explanation>,
-        "findings": [
-            {{
-                "summary":<insight_1_summary>,
-                "explanation": <insight_1_explanation>
-            }},
-            {{
-                "summary":<insight_2_summary>,
-                "explanation": <insight_2_explanation>
-            }}
-            ...
-        ]
-    }}
-
-# Grounding Rules
-Do not include information where the supporting evidence for it is not provided.
-
-
-# Example Input
------------
-Text:
-```
-Entities:
-```csv
-id,entity,type,description
-5,VERDANT OASIS PLAZA,geo,Verdant Oasis Plaza is the location of the Unity March
-6,HARMONY ASSEMBLY,organization,Harmony Assembly is an organization that is holding a march at Verdant Oasis Plaza
-```
-Relationships:
-```csv
-id,source,target,description
-37,VERDANT OASIS PLAZA,UNITY MARCH,Verdant Oasis Plaza is the location of the Unity March
-38,VERDANT OASIS PLAZA,HARMONY ASSEMBLY,Harmony Assembly is holding a march at Verdant Oasis Plaza
-39,VERDANT OASIS PLAZA,UNITY MARCH,The Unity March is taking place at Verdant Oasis Plaza
-40,VERDANT OASIS PLAZA,TRIBUNE SPOTLIGHT,Tribune Spotlight is reporting on the Unity march taking place at Verdant Oasis Plaza
-41,VERDANT OASIS PLAZA,BAILEY ASADI,Bailey Asadi is speaking at Verdant Oasis Plaza about the march
-43,HARMONY ASSEMBLY,UNITY MARCH,Harmony Assembly is organizing the Unity March
-```
-```
-Output:
-{{
-    "title": "Verdant Oasis Plaza and Unity March",
-    "summary": "The community revolves around the Verdant Oasis Plaza, which is the location of the Unity March. The plaza has relationships with the Harmony Assembly, Unity March, and Tribune Spotlight, all of which are associated with the march event.",
-    "rating": 5.0,
-    "rating_explanation": "The impact severity rating is moderate due to the potential for unrest or conflict during the Unity March.",
-    "findings": [
-        {{
-            "summary": "Verdant Oasis Plaza as the central location",
-            "explanation": "Verdant Oasis Plaza is the central entity in this community, serving as the location for the Unity March. This plaza is the common link between all other entities, suggesting its significance in the community. The plaza's association with the march could potentially lead to issues such as public disorder or conflict, depending on the nature of the march and the reactions it provokes."
-        }},
-        {{
-            "summary": "Harmony Assembly's role in the community",
-            "explanation": "Harmony Assembly is another key entity in this community, being the organizer of the march at Verdant Oasis Plaza. The nature of Harmony Assembly and its march could be a potential source of threat, depending on their objectives and the reactions they provoke. The relationship between Harmony Assembly and the plaza is crucial in understanding the dynamics of this community."
-        }},
-        {{
-            "summary": "Unity March as a significant event",
-            "explanation": "The Unity March is a significant event taking place at Verdant Oasis Plaza. This event is a key factor in the community's dynamics and could be a potential source of threat, depending on the nature of the march and the reactions it provokes. The relationship between the march and the plaza is crucial in understanding the dynamics of this community."
-        }},
-        {{
-            "summary": "Role of Tribune Spotlight",
-            "explanation": "Tribune Spotlight is reporting on the Unity March taking place in Verdant Oasis Plaza. This suggests that the event has attracted media attention, which could amplify its impact on the community. The role of Tribune Spotlight could be significant in shaping public perception of the event and the entities involved."
-        }}
-    ]
-}}
-
-
-# Real Data
-
-Use the following text for your answer. Do not make anything up in your answer.
-
-Text:
-```
-{input_text}
-```
-
-The report should include the following sections:
-
-- TITLE: community's name that represents its key entities - title should be short but specific. When possible, include representative named entities in the title.
-- SUMMARY: An executive summary of the community's overall structure, how its entities are related to each other, and significant information associated with its entities.
-- IMPACT SEVERITY RATING: a float score between 0-10 that represents the severity of IMPACT posed by entities within the community.  IMPACT is the scored importance of a community.
-- RATING EXPLANATION: Give a single sentence explanation of the IMPACT severity rating.
-- DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
-
-Return output as a well-formed JSON-formatted string with the following format:
-    {{
-        "title": <report_title>,
-        "summary": <executive_summary>,
-        "rating": <impact_severity_rating>,
-        "rating_explanation": <rating_explanation>,
-        "findings": [
-            {{
-                "summary":<insight_1_summary>,
-                "explanation": <insight_1_explanation>
-            }},
-            {{
-                "summary":<insight_2_summary>,
-                "explanation": <insight_2_explanation>
-            }}
-            ...
-        ]
-    }}
-
-# Grounding Rules
-Do not include information where the supporting evidence for it is not provided.
-
 Output:
 """
 
 PROMPTS[
+    "community_report"
+] = """-Hoạt động mục tiêu-
+Bạn là trợ lý AI giúp người phân tích thực hiện khám phá thông tin tổng quát. Khám phá thông tin là quá trình xác định và đánh giá các thông tin liên quan đến các thực thể nhất định (ví dụ: tổ chức và cá nhân) trong một mạng lưới.
+
+-Mục tiêu-
+Viết một báo cáo toàn diện về một cộng đồng, dựa trên danh sách các thực thể thuộc cộng đồng đó cùng với các mối quan hệ và các tuyên bố liên quan (nếu có). Báo cáo này sẽ được sử dụng để cung cấp thông tin cho các nhà quyết định về cộng đồng và tác động tiềm ẩn của nó. Nội dung của báo cáo bao gồm tổng quan về các thực thể chính trong cộng đồng, sự tuân thủ pháp lý, khả năng kỹ thuật, danh tiếng, ý nghĩa lịch sử, ảnh hưởng và các tuyên bố đáng chú ý.
+
+-Cấu trúc báo cáo-
+
+Báo cáo sẽ bao gồm các phần sau:
+
+- TITLE: Tên cộng đồng đại diện cho các thực thể chính – tiêu đề ngắn gọn nhưng cụ thể. Khi có thể, bao gồm các thực thể đã được đặt tên đại diện trong tiêu đề.
+- SUMMARY: Tóm tắt tổng quan về cấu trúc cộng đồng, cách các thực thể liên kết với nhau và thông tin đáng chú ý liên quan đến các thực thể.
+- IMPACT SEVERITY RATING: Điểm số từ 0-10 thể hiện mức độ nghiêm trọng của tác động từ các thực thể trong cộng đồng. IMPACT là mức độ quan trọng của cộng đồng.
+- RATING EXPLANATION: Giải thích một câu về điểm số mức độ tác động.
+- DETAILED FINDINGS: Danh sách 5-10 thông tin quan trọng về cộng đồng. Mỗi thông tin có tóm tắt ngắn gọn và theo sau là nhiều đoạn văn giải thích chi tiết căn cứ theo các quy tắc dưới đây.
+
+Trả về kết quả dưới dạng chuỗi JSON được định dạng chính xác như sau:
+
+    {{
+        "title": <report_title>,
+        "summary": <executive_summary>,
+        "rating": <impact_severity_rating>,
+        "rating_explanation": <rating_explanation>,
+        "findings": [
+            {{
+                "summary":<insight_1_summary>,
+                "explanation": <insight_1_explanation>
+            }},
+            {{
+                "summary":<insight_2_summary>,
+                "explanation": <insight_2_explanation>
+            }}
+            ...
+        ]
+    }}
+
+-Các quy tắc-
+
+Các điểm được hỗ trợ bởi dữ liệu nên liệt kê các tài liệu tham khảo của chúng như sau:
+
+"Câu này là ví dụ được hỗ trợ bởi nhiều tài liệu tham khảo dữ liệu [Dữ liệu: <tên bộ dữ liệu> (mã bản ghi); <tên bộ dữ liệu> (mã bản ghi)]."
+
+Không liệt kê quá 5 mã bản ghi trong một tài liệu tham khảo. Thay vào đó, liệt kê 5 mã bản ghi có liên quan nhất và thêm "+more" để chỉ rằng còn nhiều hơn.
+
+Ví dụ: "Người X là chủ sở hữu của Công ty Y và đối mặt với nhiều tuyên bố sai phạm [Dữ liệu: Báo cáo (1), Thực thể (5, 7); Quan hệ (23); Các tuyên bố (7, 2, 34, 64, 46, +more)]."
+
+Trong đó, 1, 5, 7, 23, 2, 34, 46, và 64 là các mã bản ghi (không phải chỉ số).
+
+Không bao gồm thông tin nếu không có chứng cứ hỗ trợ.
+
+-Ví dụ đầu vào-
+
+Văn bản:
+
+Thực thể
+
+id, entity, description
+5, VERDANT OASIS PLAZA, Verdant Oasis Plaza là địa điểm của Unity March
+6, HARMONY ASSEMBLY, Harmony Assembly là tổ chức tổ chức cuộc diễu hành tại Verdant Oasis Plaza
+
+Quan hệ
+
+id, source, target, description
+37, VERDANT OASIS PLAZA, UNITY MARCH, Verdant Oasis Plaza là địa điểm của Unity March
+38, VERDANT OASIS PLAZA, HARMONY ASSEMBLY, Harmony Assembly tổ chức cuộc diễu hành tại Verdant Oasis Plaza
+39, VERDANT OASIS PLAZA, UNITY MARCH, Unity March diễn ra tại Verdant Oasis Plaza
+40, VERDANT OASIS PLAZA, TRIBUNE SPOTLIGHT, Tribune Spotlight đang đưa tin về cuộc diễu hành tại Verdant Oasis Plaza
+41, VERDANT OASIS PLAZA, BAILEY ASADI, Bailey Asadi đang phát biểu tại Verdant Oasis Plaza về cuộc diễu hành
+43, HARMONY ASSEMBLY, UNITY MARCH, Harmony Assembly tổ chức Unity March
+
+Đầu ra:
+
+{{
+    "title": "Verdant Oasis Plaza và Unity March",
+    "summary": "Cộng đồng xoay quanh Verdant Oasis Plaza, nơi diễn ra Unity March. Plaza có các mối quan hệ với Harmony Assembly, Unity March và Tribune Spotlight, tất cả đều liên quan đến sự kiện diễu hành.",
+    "rating": 5.0,
+    "rating_explanation": "Mức độ tác động trung bình do tiềm năng gây bất ổn hoặc xung đột trong Unity March.",
+    "findings": [
+        {{
+            "summary": "Verdant Oasis Plaza là địa điểm trung tâm",
+            "explanation": "Verdant Oasis Plaza là thực thể trung tâm trong cộng đồng này, phục vụ như địa điểm tổ chức Unity March. Plaza là mối liên kết chung giữa các thực thể khác, cho thấy tầm quan trọng của nó trong cộng đồng. Sự kết hợp của plaza với cuộc diễu hành có thể dẫn đến các vấn đề như trật tự công cộng hoặc xung đột, tùy thuộc vào tính chất của cuộc diễu hành và phản ứng của cộng đồng. [Data: Entities (5), Relationships (37, 38, 39, 40, 41, +more)]"
+        }},
+        {{
+            "summary": "Vai trò của Harmony Assembly trong cộng đồng",
+            "explanation": "Harmony Assembly là thực thể quan trọng trong cộng đồng này, là tổ chức tổ chức Unity March tại Verdant Oasis Plaza. Tính chất của Harmony Assembly và cuộc diễu hành của họ có thể là nguồn nguy cơ, tùy vào mục tiêu của họ và phản ứng mà nó gây ra. Quan hệ giữa Harmony Assembly và plaza là yếu tố quan trọng trong việc hiểu được động lực cộng đồng. [Data: Entities (6), Relationships (38, 43)]"
+        }},
+        {{
+            "summary": "Unity March là sự kiện quan trọng",
+            "explanation": "Unity March là một sự kiện quan trọng diễn ra tại Verdant Oasis Plaza. Sự kiện này là yếu tố quan trọng trong động lực cộng đồng và có thể là nguồn nguy cơ, tùy thuộc vào tính chất của cuộc diễu hành và phản ứng mà nó gây ra. Quan hệ giữa cuộc diễu hành và plaza là yếu tố quan trọng trong việc hiểu cộng đồng này. [Data: Relationships (39)]"
+        }},
+        {{
+            "summary": "Vai trò của Tribune Spotlight",
+            "explanation": "Tribune Spotlight đang đưa tin về Unity March diễn ra tại Verdant Oasis Plaza. Điều này cho thấy sự kiện đã thu hút sự chú ý của truyền thông, điều này có thể làm tăng tác động của nó đối với cộng đồng. Vai trò của Tribune Spotlight có thể quan trọng trong việc định hình nhận thức của công chúng về sự kiện và các thực thể liên quan. [Data: Relationships (40)]"
+        }}
+    ]
+}}
+
+# Dữ liệu thực
+
+Sử dụng văn bản sau cho câu trả lời của bạn. Không bịa ra bất cứ điều gì trong câu trả lời của bạn.
+
+Text:
+{input_text}
+Output:
+
+"""
+
+PROMPTS[
     "entity_extraction"
-] = """-Goal-
-Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
+] = """Mục tiêu: Dựa trên văn bản liên quan đến hoạt động này và danh sách các loại thực thể, xác định tất cả các thực thể thuộc các loại đó trong văn bản và các mối quan hệ giữa các thực thể đã xác định.
 
--Steps-
-1. Identify all entities. For each identified entity, extract the following information:
-- entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [{entity_types}]
-- entity_description: Comprehensive description of the entity's attributes and activities
-Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+Các bước:
+1. Xác định tất cả các thực thể. Đối với mỗi thực thể đã xác định, trích xuất thông tin sau:
+- entity_name: Tên thực thể, viết hoa
+- entity_type: Một trong các loại sau: [{entity_types}]
+- entity_description: Mô tả chi tiết về đặc điểm và hoạt động của thực thể Định dạng mỗi thực thể dưới dạng ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
+Yêu cầu:
+- Đối với thực thể dạng sự kiện, hãy kèm với năm diễn ra. Ví dụ: Điện Biên Phủ (1954), Thành lập Mặt Trận Liên Việt (1951)
+- Đối với thực thể dạng người hãy thêm các chức vụ (nếu có). Ví dụ: 'Chủ tịch Hồ Chí Minh' thay vì 'Hồ Chí Minh', 'Đại tướng Võ Nguyên Giáp' thay vì 'Võ Nguyên Giáp'
+- Không trích xuất các sự kiện chủ bao gồm thời gian. Ví dụ: 1954, 1945
+2. Từ các thực thể đã xác định ở bước 1, xác định tất cả các cặp (source_entity, target_entity) có mối quan hệ rõ ràng với nhau. Đối với mỗi cặp thực thể liên quan, trích xuất thông tin sau:
+- source_entity: Tên thực thể nguồn, như đã xác định ở bước 1
+- target_entity: Tên thực thể mục tiêu, như đã xác định ở bước 1
+- relationship_description: Giải thích lý do tại sao thực thể nguồn và thực thể mục tiêu có mối quan hệ với nhau. Mối quan hệ này có thể bao gồm các tác động lịch sử lẫn nhau (có thể tự thêm tri thức nếu cần)
+- relationship_strength: Điểm số số học chỉ mức độ mạnh mẽ của mối quan hệ giữa thực thể nguồn và thực thể mục tiêu Định dạng mỗi mối quan hệ dưới dạng ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
-For each pair of related entities, extract the following information:
-- source_entity: name of the source entity, as identified in step 1
-- target_entity: name of the target entity, as identified in step 1
-- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
-- relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
- Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+3. Trả về kết quả bằng tiếng Việt dưới dạng một danh sách duy nhất gồm tất cả các thực thể và mối quan hệ đã xác định ở bước 1 và 2. Sử dụng {record_delimiter} làm dấu phân cách cho danh sách.
 
-3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
-
-4. When finished, output {completion_delimiter}
+4. Khi hoàn thành, xuất {completion_delimiter}
 
 ######################
--Examples-
-######################
-Example 1:
 
-Entity_types: [person, technology, mission, organization, location]
+######################
+-Ví dụ-
+######################
+
+Ví dụ 1:
+Entity_types: [person,event,place,opponent,component,action,strategy] 
 Text:
-while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+Cuộc kháng chiến chống Pháp chuyển sang giai đoạn mới: Pháp buộc phải chuyển từ ”đánh nhanh thắng nhanh” sang ”đánh lâu dài” với ta, thực hiện chính sách ”Dùng người Việt đánh người Việt,lấy chiến tranh nuôi chiến tranh ”
 
-Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
+Kết quả: ("entity"{tuple_delimiter}"Pháp"{tuple_delimiter}"opponent"{tuple_delimiter}"Thực dân Pháp là một đế quốc xâm lược và cai trị tàn bạo, đặc biệt tại các quốc gia thuộc địa như Việt Nam. Họ áp đặt chính sách chia để trị và khai thác tài nguyên, duy trì quyền lực qua các biện pháp khắc nghiệt. Trong chiến tranh Đông Dương, Pháp buộc phải chuyển từ chiến lược 'đánh nhanh thắng nhanh' sang 'đánh lâu dài' khi đối mặt với sức mạnh kháng chiến của người Việt.."){record_delimiter} 
+("entity"{tuple_delimiter}"đánh nhanh thắng nhanh"{tuple_delimiter}"strategy"{tuple_delimiter}"'Đánh nhanh thắng nhanh' là chiến lược quân sự mà Thực dân Pháp áp dụng trong giai đoạn đầu chiến tranh Đông Dương, nhằm tiêu diệt nhanh chóng lực lượng kháng chiến của ta bằng các đòn tấn công mạnh mẽ, quyết liệt. Tuy nhiên, chiến lược này đã thất bại khi đối mặt với sự kiên cường và quyết tâm của quân đội ta, buộc Pháp phải chuyển sang chiến lược 'đánh lâu dài'."){record_delimiter} 
+("entity"{tuple_delimiter}"đánh lâu dài"{tuple_delimiter}"strategy"{tuple_delimiter}"'Đánh lâu dài' là chiến lược mà Thực dân Pháp chuyển sang trong giai đoạn sau của chiến tranh Đông Dương, khi nhận thấy thất bại trong chiến lược 'đánh nhanh thắng nhanh' Pháp buộc phải đối phó với kháng chiến mạnh mẽ của ta bằng cách duy trì chiến tranh kéo dài, thực hiện chính sách 'Dùng người Việt đánh người Việt' và 'lấy chiến tranh nuôi chiến tranh' để duy trì lực lượng và làm suy yếu tinh thần kháng chiến."){record_delimiter} 
+("entity"{tuple_delimiter}"Dùng người Việt đánh người Việt, lấy chiến tranh nuôi chiến tranh"{tuple_delimiter}"strategy"{tuple_delimiter}"'Dùng người Việt đánh người Việt, lấy chiến tranh nuôi chiến tranh' là chính sách của Thực dân Pháp nhằm lợi dụng sự chia rẽ trong xã hội Việt Nam, sử dụng tài nguyên và sức lực của người dân để duy trì chiến tranh và kéo dài sự chiếm đóng."){record_delimiter} 
+("relationship"{tuple_delimiter}"Pháp"{tuple_delimiter}"đánh nhanh thắng nhanh"{tuple_delimiter}"Pháp hy vọng tiêu diệt nhanh chóng lực lượng kháng chiến của ta bằng các cuộc tấn công mạnh mẽ và quyết liệt, nhằm kết thúc chiến tranh sớm. Tuy nhiên, chiến lược này đã thất bại khi phải đối mặt với sức kháng cự mạnh mẽ và sự kiên cường của quân đội ta."{tuple_delimiter}8){record_delimiter} 
+("relationship"{tuple_delimiter}"Pháp"{tuple_delimiter}"đánh lâu dài"{tuple_delimiter}"phản ánh sự chuyển hướng chiến lược của Thực dân Pháp sau khi chiến lược "đánh nhanh thắng nhanh" thất bại. Khi đối mặt với kháng chiến mạnh mẽ của ta, Pháp buộc phải kéo dài chiến tranh, áp dụng chiến lược 'đánh lâu dài' để duy trì sự kiểm soát, sử dụng tài nguyên và sức lực của người dân Việt Nam trong suốt cuộc chiến."{tuple_delimiter}7){record_delimiter} 
+("relationship"{tuple_delimiter}"Pháp"{tuple_delimiter}"Dùng người Việt đánh người Việt,lấy chiến tranh nuôi chiến tranh"{tuple_delimiter}chính sách của Pháp nhằm lợi dụng sự chia rẽ trong xã hội Việt Nam, sử dụng người Việt để chiến đấu chống lại nhau và tận dụng tài nguyên của dân để duy trì chiến tranh, kéo dài sự chiếm đóng"{tuple_delimiter}9){completion_delimiter}
+("relationship"{tuple_delimiter}"đánh nhanh thắng nhanh"{tuple_delimiter}"đánh lâu dài"{tuple_delimiter}"sự chuyển đổi chiến lược của Pháp trong chiến tranh Đông Dương. Khi chiến lược "đánh nhanh thắng nhanh" thất bại trước sức kháng cự mạnh mẽ của ta, Pháp phải chuyển sang "đánh lâu dài" để duy trì cuộc chiến và đối phó với phong trào kháng chiến, hy vọng tiêu hao sức lực của đối phương và kéo dài sự chiếm đóng."{tuple_delimiter}8){record_delimiter} 
 
-The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
-
-It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
-################
-Output:
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is a character who experiences frustration and is observant of the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device, indicating a change in perspective."){record_delimiter}
-("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan shares a commitment to discovery and has a significant interaction with Taylor regarding a device."){record_delimiter}
-("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz is associated with a vision of control and order, influencing the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"The Device"{tuple_delimiter}"technology"{tuple_delimiter}"The Device is central to the story, with potential game-changing implications, and is revered by Taylor."){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex is affected by Taylor's authoritarian certainty and observes changes in Taylor's attitude towards the device."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex and Jordan share a commitment to discovery, which contrasts with Cruz's vision."{tuple_delimiter}6){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor and Jordan interact directly regarding the device, leading to a moment of mutual respect and an uneasy truce."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan's commitment to discovery is in rebellion against Cruz's vision of control and order."{tuple_delimiter}5){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"The Device"{tuple_delimiter}"Taylor shows reverence towards the device, indicating its importance and potential impact."{tuple_delimiter}9){completion_delimiter}
-#############################
-Example 2:
-
-Entity_types: [person, technology, mission, organization, location]
-Text:
-They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
-
-Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
-
-Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
-#############
-Output:
-("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington is a location where communications are being received, indicating its importance in the decision-making process."){record_delimiter}
-("entity"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operation: Dulce is described as a mission that has evolved to interact and prepare, indicating a significant shift in objectives and activities."){record_delimiter}
-("entity"{tuple_delimiter}"The team"{tuple_delimiter}"organization"{tuple_delimiter}"The team is portrayed as a group of individuals who have transitioned from passive observers to active participants in a mission, showing a dynamic change in their role."){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Washington"{tuple_delimiter}"The team receives communications from Washington, which influences their decision-making process."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"The team is directly involved in Operation: Dulce, executing its evolved objectives and activities."{tuple_delimiter}9){completion_delimiter}
-#############################
-Example 3:
-
-Entity_types: [person, role, technology, organization, event, location, concept]
-Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
-
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
-
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
-
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
-
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
-#############
-Output:
-("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
-("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
-("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
-("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
-("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
-("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
-#############################
--Real Data-
-######################
-Entity_types: {entity_types}
-Text: {input_text}
-######################
+###################### Dữ liệu thực tế ###################### 
+Entity_types: {entity_types} 
+Text: {input_text} 
+###################### 
 Output:
 """
 
 
 PROMPTS[
     "summarize_entity_descriptions"
-] = """You are a helpful assistant responsible for generating a comprehensive summary of the data provided below.
-Given one or two entities, and a list of descriptions, all related to the same entity or group of entities.
-Please concatenate all of these into a single, comprehensive description. Make sure to include information collected from all the descriptions.
-If the provided descriptions are contradictory, please resolve the contradictions and provide a single, coherent summary.
-Make sure it is written in third person, and include the entity names so we the have full context.
-
+] = """Bạn là một trợ lý hữu ích có nhiệm vụ tạo ra một bản tóm tắt đầy đủ từ dữ liệu dưới đây. 
+Khi được cung cấp một hoặc hai thực thể cùng với danh sách mô tả, tất cả đều liên quan đến cùng một thực thể hoặc nhóm thực thể, 
+Hãy chắc chắn bao gồm thông tin từ tất cả các mô tả. Đảm bảo các ý nghĩa lịch sử của đối tượng được giữ sau quá trình tổng hợp.
+Nếu các mô tả cung cấp thông tin mâu thuẫn, hãy giải quyết sự mâu thuẫn đó và đưa ra một bản tóm tắt thống nhất, hợp lý. 
+Lưu ý rằng mô tả cần được viết ở ngôi thứ ba và bao gồm tên của các thực thể để có đầy đủ bối cảnh.
 #######
 -Data-
 Entities: {entity_name}
 Description List: {description_list}
 #######
 Output:
+
 """
 
 
 PROMPTS[
     "entiti_continue_extraction"
-] = """MANY entities were missed in the last extraction.  Add them below using the same format:
+] = """NHIỀU thực thể đã bị bỏ sót trong lần trích xuất cuối cùng. Thêm chúng bên dưới bằng cùng một định dạng:
 """
 
 PROMPTS[
     "entiti_if_loop_extraction"
-] = """It appears some entities may have still been missed.  Answer YES | NO if there are still entities that need to be added.
+] = """Có vẻ như một số thực thể vẫn còn bị bỏ sót. Trả lời yes | no nếu vẫn còn thực thể cần được thêm vào.
 """
 
-PROMPTS["DEFAULT_ENTITY_TYPES"] = ["organization", "person", "geo", "event"]
+PROMPTS["DEFAULT_ENTITY_TYPES"] = ["person","event","place","action","strategy"]
 PROMPTS["DEFAULT_TUPLE_DELIMITER"] = "<|>"
 PROMPTS["DEFAULT_RECORD_DELIMITER"] = "##"
 PROMPTS["DEFAULT_COMPLETION_DELIMITER"] = "<|COMPLETE|>"
