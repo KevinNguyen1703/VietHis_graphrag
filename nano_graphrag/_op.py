@@ -27,7 +27,9 @@ from .base import (
     QueryParam,
 )
 from .prompt import GRAPH_FIELD_SEP, PROMPTS
-
+import psycopg2
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 def chunking_by_token_size(
     tokens_list: list[list[int]],
@@ -150,18 +152,20 @@ async def _handle_single_entity_extraction(
     record_attributes: list[str],
     chunk_key: str,
 ):
-    if len(record_attributes) < 4 or record_attributes[0] != '"entity"':
+    if len(record_attributes) < 5 or record_attributes[0] != '"entity"':
         return None
     # add this record as a node in the G
     entity_name = clean_str(record_attributes[1].upper())
     if not entity_name.strip():
         return None
     entity_type = clean_str(record_attributes[2].upper())
-    entity_description = clean_str(record_attributes[3])
+    entity_time = clean_str(record_attributes[3])
+    entity_description = clean_str(record_attributes[4])
     entity_source_id = chunk_key
     return dict(
         entity_name=entity_name,
         entity_type=entity_type,
+        entity_time=entity_time,
         description=entity_description,
         source_id=entity_source_id,
     )
@@ -207,7 +211,8 @@ async def _merge_nodes_then_upsert(
             split_string_by_multi_markers(already_node["source_id"], [GRAPH_FIELD_SEP])
         )
         already_description.append(already_node["description"])
-
+    if not nodes_data:
+        return
     entity_type = sorted(
         Counter(
             [dp["entity_type"] for dp in nodes_data] + already_entitiy_types
@@ -224,7 +229,10 @@ async def _merge_nodes_then_upsert(
     description = await _handle_entity_relation_summary(
         entity_name, description, global_config
     )
+    entity_time=' '.join(sorted(set([dp["entity_time"] for dp in nodes_data])))
     node_data = dict(
+        entity_name=entity_name,
+        entity_time=entity_time,
         entity_type=entity_type,
         description=description,
         source_id=source_id,
@@ -415,11 +423,139 @@ async def extract_entities(
             compute_mdhash_id(dp["entity_name"], prefix="ent-"): {
                 "content": dp["entity_name"] + dp["description"],
                 "entity_name": dp["entity_name"],
+                "entity_time": dp["entity_time"]
             }
             for dp in all_entities_data
         }
         await entity_vdb.upsert(data_for_vdb)
     return knwoledge_graph_inst
+
+
+def remove_quotes(d):
+    # Iterate through the dictionary
+    new_dict = {}
+    for key, value in d.items():
+        # Remove quotes from the keys
+        if isinstance(key,tuple):
+            new_key = tuple(k.strip('"') for k in key)
+        else:
+            new_key = key.strip('"')
+        if isinstance(value,list):
+            new_value = [remove_quotes(item) if isinstance(item,dict) else item for item in value]
+        else:
+            new_value = value.strip('"') if isinstance(value, str) else value
+        # Add the new key and value to the new dictionary
+        new_dict[new_key] = new_value
+
+    return new_dict
+
+
+def get_connection():
+    host = "localhost"
+    port = "5432"
+    database = "history"
+    user = "postgres"
+    password = "postgres"
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        dbname=database,
+        user=user,
+        password=password
+    )
+
+# Function to create the events table if it does not exist
+def create_postgres_table():
+    connection = None
+    cursor = None
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        create_table_query = '''
+        CREATE TABLE IF NOT EXISTS lichsu12 (
+            entity_hash_id TEXT PRIMARY KEY,
+            entity_name VARCHAR(255) NOT NULL,
+            entity_time TIMESTAMP,
+            entity_description TEXT
+        );
+        '''
+        cursor.execute(create_table_query)
+        connection.commit()
+        print("Table 'lichsu12' is ready (created if not exists).")
+
+    except Exception as e:
+        print(f"Error creating table: {e}")
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+def parse_date(date):
+    date_str = str(date)
+    if date_str is None or date_str.lower() == 'na':  # Handle None and 'None'
+        return None
+    # Try different date formats
+    date_formats = [
+        "%Y",  # Year only (e.g., 1945)
+        "%d/%m/%Y",  # Day/Month/Year (e.g., 2/9/1945)
+        "%m/%Y",  # Month/Year (e.g., 9/1945)
+        "%Y-%m-%d",  # Standard ISO format (e.g., 1945-09-02)
+    ]
+    for date_format in date_formats:
+        try:
+            processed_date = datetime.strptime(date_str, date_format)
+            return processed_date
+        except ValueError:
+            continue
+
+    # If none of the formats match, return None
+    return None
+# Function to insert rows with hash as primary key
+def insert_rows(all_entities_data):
+    connection = None
+    cursor = None
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # Prepare the data for insertion with hash as the primary key
+        data_for_postgres = [
+            (
+                key,
+                all_entities_data[key]["entity_name"],
+                parse_date(all_entities_data[key]["entity_time"]),  # Handle various date formats
+                all_entities_data[key]["content"][len(all_entities_data[key]["entity_name"]):]
+            )
+            for key in all_entities_data.keys()
+        ]
+        print(data_for_postgres)
+        insert_query = '''
+        INSERT INTO lichsu12 (entity_hash_id, entity_name, entity_time, entity_description)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (entity_hash_id)
+        DO UPDATE SET 
+            entity_name = EXCLUDED.entity_name,
+            entity_time = EXCLUDED.entity_time,
+            entity_description = EXCLUDED.entity_description;
+        '''
+
+        cursor.executemany(insert_query, data_for_postgres)
+        connection.commit()
+        print(f"Inserted/Updated {len(all_entities_data)} rows.")
+
+    except Exception as e:
+        print(f"Error inserting/updating rows: {e}")
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
 
 async def custom_extract_entities(
     chunks: dict[str, TextChunkSchema],
@@ -528,12 +664,58 @@ async def custom_extract_entities(
         for k, v in m_edges.items():
             # it's undirected graph
             maybe_edges[tuple(sorted(k))].extend(v)
+    ### Entity alignment
+    maybe_nodes = defaultdict(list,remove_quotes(maybe_nodes))
+    maybe_edges = defaultdict(list,remove_quotes(maybe_edges))
+    #
+    # import json
+    print("Dump nodes and entities into json file")
+    with open(f"{global_config['working_dir']}/maybe_nodes.json", 'w') as file:
+        file.write(str(maybe_nodes))
+    with open(f"{global_config['working_dir']}/maybe_edges.json", 'w') as file:
+        file.write(str(maybe_edges))
+    entity_list=""
+    for entity_name in maybe_nodes.keys():
+        entity_list += entity_name
+    merge_entity_prompt=PROMPTS['merge_entity'].format(entity_list=entity_list)
+    merge_entity_result=await use_llm_func(merge_entity_prompt)
+    merge_entity_result = merge_entity_result.replace("```","")
+    print(f"Duplicated entity info: \n {merge_entity_result}")
+    merge_entity_result = merge_entity_result.split("<SEP>")
+    for entity_group in merge_entity_result:
+        entity_group = entity_group.replace("\n", "")
+        entity_atom = entity_group.split('-->')
+        if len(entity_atom) != 2:
+            continue
+        entities = [item.strip() for item in entity_atom[0].strip('[]').split(',')]
+        entities = list(set(entities))
+        target_entity = entity_atom[1]
+        if not target_entity:
+            continue
+        # Merge node
+        if target_entity in entities:
+            entities.remove(target_entity)
+        for entity in entities:
+            maybe_nodes[target_entity].extend(maybe_nodes[entity])
+            del maybe_nodes[entity]
+        for i in range(len(maybe_nodes[target_entity])):
+            maybe_nodes[target_entity][i]['entity_name'] = target_entity
+        # Merge edge
+        for edge, description in maybe_edges:
+            for entity in entities:
+                if edge[0]==entity and entity != target_entity:
+                    maybe_edges[(target_entity,edge[1])] = description
+                    del maybe_edges[edge]
+                elif edge[1]==entity and entity != target_entity:
+                    maybe_edges[(edge[0], target_entity)] = description
+                    del maybe_edges[edge]
     all_entities_data = await asyncio.gather(
         *[
             _merge_nodes_then_upsert(k, v, knwoledge_graph_inst, global_config)
             for k, v in maybe_nodes.items()
         ]
     )
+    all_entities_data = [item for item in all_entities_data if item is not None]
     await asyncio.gather(
         *[
             _merge_edges_then_upsert(k[0], k[1], v, knwoledge_graph_inst, global_config)
@@ -543,15 +725,20 @@ async def custom_extract_entities(
     if not len(all_entities_data):
         logger.warning("Didn't extract any entities, maybe your LLM is not working")
         return None
+    print(f"all entities data:\n {all_entities_data}")
     if entity_vdb is not None:
         data_for_vdb = {
             compute_mdhash_id(dp["entity_name"], prefix="ent-"): {
                 "content": dp["entity_name"] + dp["description"],
                 "entity_name": dp["entity_name"],
+                "entity_time": dp["entity_time"],
             }
             for dp in all_entities_data
         }
+        create_postgres_table()
+        insert_rows(data_for_vdb)
         await entity_vdb.upsert(data_for_vdb)
+
     return knwoledge_graph_inst
 
 
@@ -955,6 +1142,92 @@ async def _find_most_related_edges_from_entities(
     return all_edges_data
 
 
+def postgres_query_date(start_time: datetime, end_time: datetime, top_k: int = 20):
+    connection = None
+    cursor = None
+    if start_time == None or end_time == None:
+        return
+    if start_time==end_time:
+        start_time,end_time=start_time+relativedelta(months=-6), start_time+relativedelta(months=+6)
+    try:
+        # Establish connection
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # Query to select entities in the given time period
+        query = '''
+        SELECT entity_hash_id, entity_name, entity_time, entity_description
+        FROM lichsu12
+        WHERE entity_time BETWEEN %s AND %s
+        LIMIT %s;
+        '''
+        # Execute the query with the provided start_time, end_time, and top_k limit
+        cursor.execute(query, (start_time, end_time, top_k))
+
+        # Fetch all results
+        results = cursor.fetchall()
+        return [
+            {
+                "id": result[0],  # entity_hash_id
+                "entity_name": result[1],
+                "entity_time": result[2],
+                "entity_description": result[3],
+                "distance": 0.5
+            }
+            for result in results
+        ]
+
+    except Exception as e:
+        print(f"Error querying PostgreSQL: {e}")
+        return []
+
+    finally:
+        # Ensure resources are released
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+def postgres_query_entity_name(entity_name: str):
+    connection = None
+    cursor = None
+    try:
+        # Establish connection
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # Query to select entities in the given time period
+        query = '''
+        SELECT entity_hash_id, entity_name, entity_time, entity_description
+        FROM lichsu12
+        WHERE entity_name = %s;
+        '''
+        # Execute the query with the provided start_time, end_time, and top_k limit
+        cursor.execute(query, (entity_name,))
+
+        # Fetch all results
+        results = cursor.fetchall()
+        return [
+            {
+                "id": result[0],  # entity_hash_id
+                "entity_name": result[1],
+                "entity_time": result[2],
+                "entity_description": result[3],
+            }
+            for result in results
+        ]
+
+    except Exception as e:
+        print(f"Error querying PostgreSQL: {e}")
+        return []
+
+    finally:
+        # Ensure resources are released
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
 async def _build_local_query_context(
     query,
     knowledge_graph_inst: BaseGraphStorage,
@@ -963,24 +1236,63 @@ async def _build_local_query_context(
     text_chunks_db: BaseKVStorage[TextChunkSchema],
     query_param: QueryParam,
 ):
-#     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    from ._llm import gpt_4o_mini_complete, gpt_4o_complete
+
     results = await entities_vdb.query(query, top_k=query_param.top_k)
-#     entities=["""
-#     Thắng lợi nào sau đây của quân đội và nhân dân Việt Nam đã làm phá sản âm mưu ”đánh nhanh thắng nhanh ”sang ”đánh lâu dài" của thực dân Pháp trong cuộc chiến tranh xâm lược Đông Dương (1945 - 1954)?
-# A. Cuộc chiến đấu trong các đô thị năm 1946.""","""
-#     Thắng lợi nào sau đây của quân đội và nhân dân Việt Nam đã làm phá sản âm mưu ”đánh nhanh thắng nhanh ”sang ”đánh lâu dài" của thực dân Pháp trong cuộc chiến tranh xâm lược Đông Dương (1945 - 1954)?
-# B. Chiến dịch Việt Bắc thu - đông năm 1947.
-# """, """
-#     Thắng lợi nào sau đây của quân đội và nhân dân Việt Nam đã làm phá sản âm mưu ”đánh nhanh thắng nhanh ”sang ”đánh lâu dài" của thực dân Pháp trong cuộc chiến tranh xâm lược Đông Dương (1945 - 1954)?
-# C. Chiến dịch Biên giới thu - đông năm 1950.
-# """, """
-#     Thắng lợi nào sau đây của quân đội và nhân dân Việt Nam đã làm phá sản âm mưu ”đánh nhanh thắng nhanh ”sang ”đánh lâu dài" của thực dân Pháp trong cuộc chiến tranh xâm lược Đông Dương (1945 - 1954)?
-# D. Chiến dịch Thượng Lào xuân - hè năm 1953."""]
-#     results = []
-#     for i in entities:
-#         results.extend(await entities_vdb.query(i, top_k=5))
-#     print(results)
-#     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    for i in range(len(results)):
+        entity_name = results[i]['entity_name']
+        entity_info = postgres_query_entity_name(entity_name)
+        try:
+            results[i]['entity_description'] = entity_info[0]['entity_description']
+        except Exception as e:
+            print(f"#### Cannot extract entity description for {entity_name} with error {e}")
+            results[i]['entity_description'] = "None"
+
+    query_period_query = PROMPTS['time_extraction'].format(query=query)
+    time_period= await gpt_4o_mini_complete(query_period_query)
+    try:
+        start_time, end_time = time_period.split("-")
+        time_results = postgres_query_date(start_time=parse_date(start_time), end_time=parse_date(end_time))
+        if time_results != None:
+            results.extend(time_results)
+    except:
+        pass
+    ### rerank using LLM
+    try:
+        rerank_entity_query=f"""
+    Tôi đang có danh sách các thực thể và các mô tả của các thực thể về 1 chủ đề lịch sử. Bạn hãy giúp tôi lọc ra những thực thể hữu ích để trả lời câu hỏi được đưa ra.
+    Dữ liệu đầu ra là danh sách tên các thực thể được in hoa và giống với dữ liệu đầu vào được ngăn cách với nhau bởi dấu |
+###################### Ví dụ ######################
+    Câu hỏi:
+Năm 1936, ở Việt Nam các ủy ban hành động được thành lập nhằm mục đích gì?
+A.	Để lập ra các hội ái hữu thay cho Công hội đỏ, Nông hội đỏ.
+B.	Chuẩn bị mọi mặt cho khởi nghĩa giành chính quyền.
+c. Biểu dương lực lượng khi đón phái viên của Chính phủ Pháp.
+D. Thu thập “dân nguyện” tiến tới Đông Dương Đại hội.
+    Danh sách các thực thể:
+['entity_name': '"ĐẢNG DÂN CHỦ VIỆT NAM"', 'id': 'ent-8c8e0e2065849be3fc86e0ff6f568220', 'distance': 0.5656490325927734, 'entity_description': '"Đảng Dân chủ Việt Nam được thành lập nhằm tập hợp lực lượng chính trị đa dạng trong cuộc kháng chiến và xây dựng đất nước, tham gia vào Mặt trận Việt Minh chống thực dân Pháp."', 'entity_name': '"PHONG TRÀO DÂN CHỦ 1936 – 1939"', 'id': 'ent-186a43b9c6b23482682e7501c30faa93', 'distance': 0.5586332082748413, 'entity_description': '"Phong trào Dân chủ 1936 – 1939 là một cuộc vận động quần chúng lớn, do Đảng Cộng sản Đông Dương lãnh đạo, nhằm mở rộng quyền lợi dân sinh, dân chủ cho nhân dân lao động. Phong trào đã buộc chính quyền thực dân phải nhượng bộ một số yêu sách cụ thể và giúp quần chúng giác ngộ về chính trị."<SEP>"Phong trào Dân chủ 1936 – 1939 là một cuộc vận động quần chúng lớn, do Đảng Cộng sản Đông Dương lãnh đạo, nhằm mở rộng quyền lợi dân sinh, dân chủ cho nhân dân lao động. Phong trào đã buộc chính quyền thực dân phải nhượng bộ một số yêu sách cụ thể và giúp quần chúng giác ngộ về chính trị."<SEP>"Phong trào dân chủ 1936 – 1939 thể hiện sự phát triển mạnh mẽ của các phong trào dân chủ tại Việt Nam, với sự tham gia của nhiều tổ chức chính trị và xã hội nhằm yêu cầu thực dân Pháp thực hiện những cải cách chính trị và xã hội."<SEP>"Phong trào dân chủ 1936 – 1939 thể hiện sự phát triển mạnh mẽ của các phong trào dân chủ tại Việt Nam, với sự tham gia của nhiều tổ chức chính trị và xã hội nhằm yêu cầu thực dân Pháp thực hiện những cải cách chính trị và xã hội."', 'entity_name': '"CHÍNH PHỦ NHÂN DÂN"', 'id': 'ent-644009ac01153664cd96d1bf5a639463', 'distance': 0.5334857702255249, 'entity_description': '"Chính phủ nhân dân của nước Việt Nam Dân chủ Cộng hoà được thành lập trong bối cảnh kháng chiến chống Pháp và Nhật, nhằm tạo ra một cơ chế lãnh đạo chính thức cho phong trào cách mạng và giải phóng dân tộc."', 'entity_name': '"THÁNG 9 - 1936"', 'id': 'ent-96e7da1755d62540e4beddba8b73ad52', 'distance': 0.5297252535820007, 'entity_description': '"Tháng 9 - 1936 là thời điểm mà chính quyền thực dân ra lệnh giải tán các ủy ban hành động và cấm các cuộc hội họp của nhân dân, đánh dấu bước tiến mới trong việc đàn áp phong trào cách mạng tại Đông Dương."', 'entity_name': '"HỘI LIÊN VIỆT"', 'id': 'ent-becbaacfb39c05408bddbcc20bf3ee40', 'distance': 0.520359992980957, 'entity_description': '"Hội Liên Việt là tổ chức được thành lập nhằm thống nhất các lực lượng kháng chiến, kết hợp giữa các tổ chức chính trị khác nhau để nâng cao sức mạnh chiến đấu chống thực dân Pháp."', 'entity_name': '"HỘI LIÊN HIỆP QUỐC DÂN VIỆT NAM (LIÊN VIỆT)"', 'id': 'ent-3a336af2c36c760053c2dc8902a0fba2', 'distance': 0.5199624300003052, 'entity_description': '"Hội Liên hiệp quốc dân Việt Nam (Liên Việt) là một tổ chức chính trị được thành lập trong bối cảnh kháng chiến chống Pháp, nhằm mục đích tập hợp lực lượng chính trị yêu nước, thống nhất các phong trào cách mạng và tăng cường sức mạnh kháng chiến."', 'entity_name': '"HỘI NGHỊ BAN CHẤP HÀNH TRUNG ƯƠNG ĐẢNG CỘNG SẢN ĐÔNG DƯƠNG THÁNG 7 – 1936"', 'id': 'ent-71318cdf16440613d8f5e1fe86b6ea14', 'distance': 0.5148401260375977, 'entity_description': '"Hội nghị này có ý nghĩa quan trọng trong việc xác định đường lối đấu tranh của Đảng Cộng sản Đông Dương, với mục tiêu chống đế quốc, chống phong kiến, và đòi hỏi các quyền tự do, dân sinh, dân chủ cho nhân dân. Hội nghị quyết định thành lập Mặt trận Thống nhất nhân dân phản đế Đông Dương và kêu gọi các đảng phái cùng nhân dân tham gia phong trào đấu tranh."', 'entity_name': '"ĐỘI TỰ VỆ VÀ CỨU TẾ ĐỎ"', 'id': 'ent-13e09a0cb0934215470e7619b4f99a5c', 'distance': 0.5086166262626648, 'entity_description': '"Đội tự vệ và cứu tế đỏ là lực lượng được thành lập nhằm bảo vệ người dân và hỗ trợ trong các hoạt động cứu trợ, thể hiện tinh thần đoàn kết và trợ giúp của Đảng trong công cuộc đấu tranh."', 'entity_name': '"ĐẢNG CỘNG SẢN"', 'id': 'ent-0794f24ae7ff52435953f177acf7c3bb', 'distance': 0.5042251944541931, 'entity_description': '"Đảng Cộng sản Đông Dương là lực lượng lãnh đạo và tổ chức các phong trào đấu tranh chống thực dân Pháp. Đảng giữ vai trò quyết định trong việc định hướng chiến lược cách mạng, đặc biệt là việc đoàn kết giai cấp công nhân và nông dân."', 'entity_name': '"ĐẢNG CỘNG SẢN VIỆT NAM"', 'id': 'ent-d56367430c17d0f1608c707af2835f2c', 'distance': 0.5002216100692749, 'entity_description': 'Đảng Cộng sản Việt Nam, được thành lập vào năm 1930 dưới sự sáng lập của Nguyễn Ái Quốc, là lực lượng lãnh đạo chính trị của cách mạng Việt Nam. Đảng đóng vai trò quan trọng trong việc tổ chức và lãnh đạo các cuộc kháng chiến chống thực dân Pháp và Mỹ, định hướng cho phong trào cách mạng, cũng như xây dựng chính quyền cách mạng. Đảng đại diện cho giai cấp vô sản và các tầng lớp nhân dân lao động khác, là tổ chức chính trị lãnh đạo cuộc đấu tranh giành độc lập và tự do cho dân tộc.\n\nLịch sử của Đảng gắn liền với nhiều giai đoạn phát triển của cách mạng Việt Nam, trong đó có việc kết hợp chủ nghĩa Mác-Lênin với phong trào công nhân và yêu nước. Đảng đã thiết lập các đường lối, chủ trương nhằm kháng chiến thành công và thúc đẩy phát triển đất nước sau chiến tranh. Ngoài ra, Đảng Cộng sản Việt Nam cũng góp phần vào sự nghiệp đổi mới từ giữa những năm 1980, xác định hướng đi và chiến lược phát triển lâu dài của nền kinh tế quốc dân.\n\nThông qua các đại hội đảng, Đảng Cộng sản Việt Nam đã đưa ra những quyết sách lớn trong việc phát triển kinh tế - xã hội, khẳng định vai trò lãnh đạo trong các hoạt động kháng chiến cũng như trong công cuộc phát triển quốc gia.', 'entity_name': '"CUỘC “KHỦNG BỐ TRẮNG” CỦA THỰC DÂN PHÁP"', 'id': 'ent-0a7e4e3f13af8934dc3b1c6a0aae27e2', 'distance': 0.4979051649570465, 'entity_description': '"Cuộc khủng bố trắng là một chính sách của thực dân Pháp nhằm đàn áp phong trào cách mạng và phong trào yêu nước ở Việt Nam, đặc biệt những năm 1930 - 1931, đã dẫn tới nhiều cuộc nổi dậy của quần chúng."', 'entity_name': '"CHÍNH QUYỀN THỰC DÂN"', 'id': 'ent-8f27fa9ba50ad3ae58811576ee6d7016', 'distance': 0.4966307282447815, 'entity_description': '"Chính quyền thực dân Pháp đã thiết lập các chính sách nhằm duy trì quyền kiểm soát và khai thác tối đa tài nguyên từ thuộc địa, gây khó khăn cho cuộc sống của người dân địa phương, đồng thời tạo điều kiện cho tư bản Pháp chiếm đoạt ruộng đất của nông dân."<SEP>"Chính quyền thực dân Pháp đã thiết lập các chính sách nhằm duy trì quyền kiểm soát và khai thác tối đa tài nguyên từ thuộc địa, gây khó khăn cho cuộc sống của người dân địa phương, đồng thời tạo điều kiện cho tư bản Pháp chiếm đoạt ruộng đất của nông dân."<SEP>"Chính quyền thực dân là hệ thống chính quyền do thực dân Pháp thiết lập, hoạt động nhằm duy trì sự cai trị và khai thác tài nguyên tại Việt Nam, thường xuyên phải đối mặt với các cuộc kháng chiến của nhân dân."<SEP>"Chính quyền thực dân tại Đông Dương là lực lượng cai trị, phản động nghịch lại các yêu cầu dân chủ và dân sinh, đã thực hiện nhiều biện pháp hạn chế quyền tự do của người dân, trong đó có việc cấm các cuộc hội họp, mít tinh của quần chúng."<SEP>"Chính quyền thực dân là hệ thống chính quyền do thực dân Pháp thiết lập, hoạt động nhằm duy trì sự cai trị và khai thác tài nguyên tại Việt Nam, thường xuyên phải đối mặt với các cuộc kháng chiến của nhân dân."<SEP>"Chính quyền thực dân tại Đông Dương là lực lượng cai trị, phản động nghịch lại các yêu cầu dân chủ và dân sinh, đã thực hiện nhiều biện pháp hạn chế quyền tự do của người dân, trong đó có việc cấm các cuộc hội họp, mít tinh của quần chúng."', 'entity_name': '"HỘI LIÊN HIỆP THUỘC ĐỊA"', 'id': 'ent-3876555f55fca0145139e2a168b46f81', 'distance': 0.49185094237327576, 'entity_description': '"Tổ chức được thành lập để tập hợp các dân tộc thuộc địa chống lại thực dân."', 'entity_name': '"BỘ CHÍNH TRỊ BAN CHẤP HÀNH TRUNG ƯƠNG ĐẢNG"', 'id': 'ent-ae73daa6bf1faea0a20d348029e83d79', 'distance': 0.4911544620990753, 'entity_description': '"Bộ Chính trị Ban Chấp hành Trung ương Đảng Cộng sản Việt Nam là cơ quan lãnh đạo cao nhất, đã họp ở Việt Bắc để bàn về kế hoạch quân sự trong mùa đông - xuân 1953-1954, với mục tiêu chủ yếu là tiêu diệt địch."', 'entity_name': '"VIỆT MINH"', 'id': 'ent-4d0c1267a968719728d4a809c8d5547e', 'distance': 0.4911538362503052, 'entity_description': 'Việt Minh là một tổ chức chính trị-militar được thành lập để lãnh đạo phong trào kháng chiến tại Việt Nam, có vai trò quan trọng trong việc tổ chức và lãnh đạo quần chúng nhân dân chống lại sự chiếm đóng của thực dân Pháp và phát xít Nhật. Dưới sự lãnh đạo của Đảng Cộng sản, Việt Minh đã tập hợp nhiều lực lượng yêu nước và tiến bộ xã hội, nhằm mục tiêu giành độc lập cho đất nước và giải phóng dân tộc.\n\nVietnamese revolutionary organization, Việt Minh, was established to unite the Vietnamese people in their struggle for independence and to protect the nation during the occupation of French colonialists and Japanese fascists. The organization played a crucial role in the success of the August Revolution in 1945, significantly contributing to the effectiveness of the national liberation movement. Việt Minh không chỉ là tổ chức chính trị - quân sự mà còn là biểu tượng cho lòng yêu nước của nhân dân Việt Nam trong cuộc chiến giành độc lập và tự do.', 'entity_name': '"ĐẠI VIỆT"', 'id': 'ent-a564db4bc86b429cf66757223505803f', 'distance': 0.4911462962627411, 'entity_description': '"Đại Việt là một trong những đảng phái chính trị tại Đông Dương, thân Nhật, đã hoạt động trong bối cảnh Nhật Bản xâm chiếm khu vực và có những hoạt động tuyên truyền nhằm lật đổ thực dân Pháp."', 'entity_name': '"VIỆT NAM CÁCH MẠNG ĐỒNG MINH HỘI"', 'id': 'ent-7ab4861b505f26a1f4b8613455c79bee', 'distance': 0.4902685284614563, 'entity_description': '"Việt Nam Cách mạng đồng minh hội là một tổ chức phản động có ý đồ cướp chính quyền, với sự hỗ trợ từ quân đội Trung Hoa Dân quốc và thực dân Pháp."', 'entity_name': '"PHONG TRÀO DÂN CHỦ"', 'id': 'ent-1b3b5f1b0d75c0fec84825ebab86865c', 'distance': 0.4897870719432831, 'entity_description': '"Phong trào dân chủ là sự kiện diễn ra từ giữa năm 1936 đến 1939, khi người dân Việt Nam dưới sự lãnh đạo của Đảng Cộng sản đã tham gia vào các cuộc đấu tranh nhằm đòi tự do và dân chủ, chống lại chính quyền thực dân. Đây là giai đoạn quan trọng đánh dấu sự gia tăng ý thức đấu tranh của nhân dân."', 'entity_name': '"ĐẠI HỘI ĐÔNG DƯƠNG"', 'id': 'ent-29436d7439214f193316ac390918a62a', 'distance': 0.48934826254844666, 'entity_description': '"Đại hội Đông Dương được triệu tập nhằm thảo luận và thúc đẩy các yêu cầu về tự do, dân chủ. Tuy nhiên, sự kiện này đã bị cấm hoạt động bởi chính quyền thực dân."', 'entity_name': '"LIÊN MINH CÁC LỰC LƯỢNG DÂN TỘC, DÂN CHỦ VÀ HOÀ BÌNH"', 'id': 'ent-7807e28d813b32f35c8bd4a2fa481b1a', 'distance': 0.4847652018070221, 'entity_description': '"Tổ chức Liên minh các lực lượng dân tộc, dân chủ và hoà bình được thành lập để đại diện cho các tầng lớp trí thức, tư sản dân tộc tiến bộ ở các thành thị trong cuộc chiến chống Mỹ, thể hiện sự đoàn kết và đấu tranh giành độc lập của người dân Việt Nam."', 'id': 'ent-71318cdf16440613d8f5e1fe86b6ea14', 'entity_name': '"HỘI NGHỊ BAN CHẤP HÀNH TRUNG ƯƠNG ĐẢNG CỘNG SẢN ĐÔNG DƯƠNG THÁNG 7 – 1936"', 'entity_time': datetime.datetime(1936, 7, 1, 0, 0), 'entity_description': '"Hội nghị này có ý nghĩa quan trọng trong việc xác định đường lối đấu tranh của Đảng Cộng sản Đông Dương, với mục tiêu chống đế quốc, chống phong kiến, và đòi hỏi các quyền tự do, dân sinh, dân chủ cho nhân dân. Hội nghị quyết định thành lập Mặt trận Thống nhất nhân dân phản đế Đông Dương và kêu gọi các đảng phái cùng nhân dân tham gia phong trào đấu tranh."', 'distance': 0.5, 'id': 'ent-60322f4c787ed690440eea90c181044e', 'entity_name': '"MẶT TRẬN THỐNG NHẤT NHÂN DÂN PHẢN ĐẾ ĐÔNG DƯƠNG"', 'entity_time': datetime.datetime(1936, 1, 1, 0, 0), 'entity_description': '"Mặt trận này được thành lập nhằm tập hợp lực lượng chống lại thực dân Pháp và phong kiến. Nó khuyến khích sự đoàn kết giữa các tầng lớp xã hội để đấu tranh vì quyền lợi chung của nhân dân, góp phần xây dựng phong trào quần chúng mạnh mẽ hơn."', 'distance': 0.5, 'id': 'ent-bd71e5e1e81d6661c8453c3cdeb3e068', 'entity_name': '"MÁTXCƠVA"', 'entity_time': datetime.datetime(1935, 7, 1, 0, 0), 'entity_description': '"Mátxcơva là nơi tổ chức Đại hội lần thứ VII của Quốc tế Cộng sản, nơi Đảng Cộng sản Đông Dương đã tham gia để xác định kẻ thù là chủ nghĩa phát xít và nhiệm vụ của giai cấp công nhân trong giai đoạn mới."', 'distance': 0.5, 'id': 'ent-0bd1c17e14e9d8946b0a56fdff462693', 'entity_name': '"CHÍNH PHỦ MẶT TRẬN NHÂN DÂN"', 'entity_time': datetime.datetime(1936, 6, 1, 0, 0), 'entity_description': '"Chính phủ Mặt trận Nhân dân là chính phủ mới ở Pháp, lên cầm quyền và thực hiện nhiều chính sách tiến bộ ở thuộc địa, tạo ra cơ hội cho các phong trào cách mạng ở Đông Dương phát triển."', 'distance': 0.5]
+Kết quả:
+PHONG TRÀO DÂN CHỦ 1936 – 1939|HỘI NGHỊ BAN CHẤP HÀNH TRUNG ƯƠNG ĐẢNG CỘNG SẢN ĐÔNG DƯƠNG THÁNG 7 – 1936|THÁNG 9 - 1936|ĐẠI HỘI ĐÔNG DƯƠNG|MẶT TRẬN THỐNG NHẤT NHÂN DÂN PHẢN ĐẾ ĐÔNG DƯƠNG|CHÍNH PHỦ MẶT TRẬN NHÂN DÂN|ĐẢNG CỘNG SẢN|ĐẢNG CỘNG SẢN VIỆT NAM|MÁTXCƠVA|CHÍNH QUYỀN THỰC DÂN
+###################### Dữ liệu thực tế ######################
+Câu hỏi:
+    {query}
+Danh sách các thực thể:
+    {str(results)}
+######################
+Output:
+    """
+        rerank_entities = await gpt_4o_complete(rerank_entity_query)
+        rerank_entities_list = rerank_entities.split("|")
+        # rerank_entities_list=[entity.replace('"','') for entity in rerank_entities_list]
+        # temp_results = []
+        # print(results)
+        # for entity in results:
+        #     if entity['entity_name'][1:-2] in rerank_entities_list:
+        #         temp_results.append(entity)
+        # results = temp_results
+        results = [entity for entity in results if entity['entity_name'] in rerank_entities_list]
+    except:
+        print("Can't do rerank for query output")
 
     if not len(results):
         return None
@@ -997,18 +1309,18 @@ async def _build_local_query_context(
         for k, n, d in zip(results, node_datas, node_degrees)
         if n is not None
     ]
-    use_communities = await _find_most_related_community_from_entities(
-        node_datas, query_param, community_reports
-    )
+    # use_communities = await _find_most_related_community_from_entities(
+    #     node_datas, query_param, community_reports
+    # )
     use_text_units = await _find_most_related_text_unit_from_entities(
         node_datas, query_param, text_chunks_db, knowledge_graph_inst
     )
     use_relations = await _find_most_related_edges_from_entities(
         node_datas, query_param, knowledge_graph_inst
     )
-    logger.info(
-        f"Using {len(node_datas)} entites, {len(use_communities)} communities, {len(use_relations)} relations, {len(use_text_units)} text units"
-    )
+    # logger.info(
+    #     f"Using {len(node_datas)} entites, {len(use_communities)} communities, {len(use_relations)} relations, {len(use_text_units)} text units"
+    # )
     entites_section_list = [["id", "entity", "type", "description", "rank"]]
     for i, n in enumerate(node_datas):
         entites_section_list.append(
@@ -1039,8 +1351,8 @@ async def _build_local_query_context(
     relations_context = list_of_list_to_csv(relations_section_list)
 
     communities_section_list = [["id", "content"]]
-    for i, c in enumerate(use_communities):
-        communities_section_list.append([i, c["report_string"]])
+    # for i, c in enumerate(use_communities):
+    #     communities_section_list.append([i, c["report_string"]])
     communities_context = list_of_list_to_csv(communities_section_list)
 
     text_units_section_list = [["id", "content"]]
@@ -1048,17 +1360,9 @@ async def _build_local_query_context(
         text_units_section_list.append([i, t["content"]])
     text_units_context = list_of_list_to_csv(text_units_section_list)
     return f"""
------Reports-----
-```csv
-{communities_context}
-```
 -----Entities-----
 ```csv
 {entities_context}
-```
------Relationships-----
-```csv
-{relations_context}
 ```
 -----Sources-----
 ```csv
@@ -1076,7 +1380,30 @@ async def local_query(
     query_param: QueryParam,
     global_config: dict,
 ) -> str:
-    use_model_func = global_config["best_model_func"]
+    from ._llm import gpt_4o_mini_complete
+    use_model_func = global_config["cheap_model_func"]
+
+    filter_query = f"""
+Dưới đây là 1 câu hỏi trắc nghiệm về chủ đề lịch sử, bạn có thể giúp tôi lọc bỏ những đáp án chắc chắn sai và giữ lại những đáp án có khả năng là đáp án chính xác.
+Các đáp án có khả năng trên sẽ được tìm kiếm trên bộ dữ liệu để xác định kết quả chính xác nhất.
+Đầu ra chỉ cần là câu hỏi cũ và các đáp án có thể có. Không cần giải thích gì thêm
+###################### Ví dụ ######################
+Input:
+Cách mạng tháng Tám năm 1945 và cuộc Tổng tiến công và nổi dậy Xuân 1975 ở Việt Nam có điểm chung là  
+A. xóa bỏ được tình trạng đất nước bị chia cắt.  
+B. hoàn thành cuộc cách mạng dân chủ nhân dân.  
+C. hoàn thành thống nhất đất nước về mặt nhà nước.  
+D. được sự ủng hộ mạnh mẽ của nhân dân thế giới.
+Output:
+Cách mạng tháng Tám năm 1945 và cuộc Tổng tiến công và nổi dậy Xuân 1975 ở Việt Nam có điểm chung là  
+A. xóa bỏ được tình trạng đất nước bị chia cắt.  
+C. hoàn thành thống nhất đất nước về mặt nhà nước.  
+###################### Dữ liệu thực tế ######################
+Input: {query}
+    """
+    query = await use_model_func(filter_query)
+    print(query)
+
     context = await _build_local_query_context(
         query,
         knowledge_graph_inst,
@@ -1086,15 +1413,22 @@ async def local_query(
         query_param,
     )
     if query_param.only_need_context:
-        return context
+        print(f"@@@@@@@@@@@@@@@@@@@\nContext below:\n{context}")
     if context is None:
         return PROMPTS["fail_response"]
     sys_prompt_temp = PROMPTS["local_rag_response"]
     sys_prompt = sys_prompt_temp.format(
         context_data=context, response_type=query_param.response_type
     )
+
+    final_query = f"""
+Bạn là một trợ lý AI chuyên gia về trả lời câu hỏi trắc nghiệm. Hãy đọc kỹ câu hỏi sau và chỉ trả lời bằng một ký tự đại diện cho đáp án đúng (A, B, C, D). Không giải thích, không đưa thêm thông tin, chỉ trả về một ký tự duy nhất:
+Câu hỏi:
+{query}
+Định dạng đầu ra:
+- Chỉ trả về một ký tự (A, B, C hoặc D)."""
     response = await use_model_func(
-        query,
+        final_query,
         system_prompt=sys_prompt,
     )
     return response
@@ -1266,7 +1600,3 @@ async def naive_query(
     )
     return response
 
-1/ Tại sao phải dùng graphrag trong lịch sử
-2/ Đã có graphRAG thì graph như thế nào là phù hợp --> đề xuất cơ chế query, ...
-3/ Thực nghiệm để kiểm tra
-Xác định vấn đề --> đề xuất --> Thực nghiệm

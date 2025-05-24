@@ -2878,5 +2878,965 @@
   "f647630f691c8c8a5f0858061a697778": {
     "return": "A",
     "model": "gpt-4o"
+  },
+  "ed1b0cf0f38c29458669e429441b5d44": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "084f9f0c304a2a93e30f9a9e46e56d80": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "44b6d3e0f7e67fe5a062f487859349e9": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "ca6b71ee1a5272061f73e0e4470809fd": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "ea4edcba95f1ff22ad94c6214bce37c0": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "e33cd72e889ca275e24a8abaea9ee3b9": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "ee99018d509bd4be04b5d95e74eea340": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "0d218a28c54b2ddfdfe3d9c9720f2326": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "ab1cff64b9d84f9cdfd0a96aea24d0f4": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "06e04c112d032ebde70722da2340ecee": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "241a75c79174ef0ec5b048a53a892084": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "05112acb396a7da727ed9a63a60054e2": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "c9716d3670e8e9d2381b6ed5cd7573fc": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "24863ed8704488f1928860f1cd1c7348": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "609172cd8be04444a52cb5d1de353375": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "adc61c4d164d7e77c5e1cb901bc0708e": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "a116c66a7fadd80d6ef6095bef7f5512": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "846cf12c228280cbbe53b3128352b8cc": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "eca60f335cda68f04a4565e433702fb5": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "4a2ccc7db05fb4b89b3416cd28b71994": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "d3eaed3aac912bd64c9a1f708a4e9b37": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "ce45bc989f17a09e114564a8aefcdd73": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "31946433c3c48d0dac2624b5398a6260": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "11f52b7e25b05d0d8d326231ca85360c": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "bd651b832c4adbe53048a61a41370ba1": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "2b7dd4785b224b4e55d37ca6cd952701": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "86b0fcc4de90236d0d40aebed1a96c6b": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "8735f34073735128d06c16e7dc7d95b8": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "e2d0bc0283477b6dea3cd0fb2227aa80": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "9ecd824cd56d3661d4eb9dc44191b488": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "e28a06a422eb5e3cd5e144dbe87a416a": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "11b1107a6889bbe94ebcb2e73a069b41": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "3fec0581f5dc3866eaa83d72e3336aaa": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "3f701e48734d82a5efa6205c154124f5": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "e31c78900d71c1c6abc73bae1d254b18": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "b353ca47e8b057bef9212de075a4f03d": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "1dbc67424e27fc731fe97b40cee7b32e": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "0fa804344a81f9dde41308e9ec43063c": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "cb032f7c9ec42bf47be84978ef0ac9d9": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "df1cf1c9af65e34759e0a2eafe7d513b": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "52820dccc2b006f30004466a39d883df": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "1575fbfad3ddf8459565199f3c5f2dea": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "7f4619c4831c1cb01312e03dd27c5609": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "4c3abd6302083a42889948dd6bec89bc": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "2be45f1db73f6e52444b53199e9a177e": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "5aab16a2ee62c1c8615e20b3a12e20a5": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "95c8ab1ff14c9ed6e0d692291aee2f0d": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "1fa7deaa4e8023524c843b952052cab0": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "6b9e73ddcb2cb9eba9ba8e6739e01749": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "6db4281ecc719d5c1cc14773c1688d71": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "d39c49199e2e95ce4a8b7b72600c4435": {
+    "return": "B",
+    "model": "gpt-4o"
+  },
+  "5c8e31ef73b3286666e8ea96ff954edb": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "c80724fcfe096dae6d170e3d1990d97d": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "a1bc255ce04854b65a1b8a86b3d6bfdc": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "11c8c369401ee33720dab517a8bf3e18": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "349db7e4aca19fad59a49abd6940910d": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "3709bbbe97129ad33aabf0f9c15b686e": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "cbdcbe63c6e8de06a39efe4c4f9eb721": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "80bc7e1c9581dd508b7dc829c58f21d1": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "04ce3a68fa6ac7f91c24124b5cedffa8": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "1079cdcafdfde62b1ec15e3d6e0852ba": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "735a0d56adeed54fec8de6ee3bf56429": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "44cba61e49b81cfdb438084b4f5e3924": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "ed86d37c41a432469d9d8db25a5b3b81": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "658156a0aed4c7235e3e313baab31d5f": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "b0d6aea126c6a473103a845b55e46f89": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "2c137b1fcf47911a3096e32d5b0acf9e": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "f6a3a7cfeef054272643687b949008b3": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "fba5a25865422fbdce7133068014be89": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "eba6b630dba71f2e46e8e39d58c9ded9": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "a7c69000540f491c9ef07ea45ef4c936": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "f9404e2b473facf935c683a511742fde": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "36ae193238d2f98277e09bfbb2cd7e1f": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "45ec98e7436e8dac3d2c5714b9f919d5": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "35e650f344ef37b973f35807bc21c605": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "f7b43a1ba099a70e908afe86d6ddc90a": {
+    "return": "A",
+    "model": "gpt-4o"
+  },
+  "1609fc7104bf530c92c93db74ac74f42": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "1ccb7c2786c098fe3ef8ac63451aa41b": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "98c75c29504ea304b81d87a2cb0bef4b": {
+    "return": "D",
+    "model": "gpt-4o"
+  },
+  "9cb12268d5959fb0c1d9e2e05425d450": {
+    "return": "C",
+    "model": "gpt-4o"
+  },
+  "19d4636f56ebcb14aca3420563670793": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "0a53c807da0ab18c3b487393cc7a986d": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "06c76e3ad91e325c436f294463d5ddf5": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "012a04bc7053f4727660af61a6da300d": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "4fa028d3e9fa706f7771008abe0fe676": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "49ed1d2885da92e20dfb3200de2060d3": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "2b92c9317a14f0d331a063057a8191b2": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "db886beda6ad4a69ec64ca004ab0bac6": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "f886796b7801f13eb3f882bacc71195b": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "8206aac2b965a3dc546a495b934b05bd": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "dc8b8a0a2215830e658fd93d130bc709": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "e52ace82cbf9aa10f2ac996bc9c34095": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "3743b66ee7a750e0373a9fca6287cd5b": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "4c1b036e69d37745fde10a594b64da60": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "4f238de15a28b5f6a375bc66a57b6588": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "6241bf43fa0a1ac96104932d781a16df": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "ed59d11b3252e563ddaa344196c630df": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "c4008d0fcc5117d629a68d55c8b61d2c": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "3db6c3eeab5d109b5ed1ba9c4032b61e": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "5d478c9d3760232efae9eef0e873396b": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "396d455e6ef9280bbf13d860f084863b": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "56fb9444c8f760887d10970caa764758": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "43e8a233aed6c04f4c0e5baf3ff099c4": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "ba568a8f1a3ae37911b71ee6bf6dcd57": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "85f21f7ed0d8187a9667aa0b6e54cf06": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "2be1dbfe4db84e9087b71bc9141f40c8": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "1b46c9b6fceef9d910d87424b9c23c9f": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "f6a75fa29a0f562bfff8584461eaeb2b": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "5057157ae17964f6e21a72f67969fc90": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "5a6daf08d1d7ca406dbe20c549838c8f": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "dae54db2da44ecaace04d9ee36e85ef9": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "8ce29ca1ab10cc1918e5327d13a88ec2": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "19c5b9545a3132534417abb82447bf93": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "cd2f4192866aad040e4af68a1a78309b": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "3a4aea9f115b856201c6dc7d2f3d5524": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "30f14a72d6bdfb75fc3a36a70fe97d38": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "4eee64209d153598af6bd0a5ed7a4f1a": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "a3dac5ab721b5a3e0cda0f60d82653a2": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "fca883f2db2a7744bbca1c4dac73a3c1": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "f13cb3d9bfe758cdf726d4ce281c1db1": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "533ca762965cb317549b3ae41637feb1": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "0dec00d1bdc35e1aa42d5def66d9dfbd": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "70f46cfae0d95ce6a5051d6b89e22fb3": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "bc1ba3c33f7be1a23709f80a3dda11cb": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "f896e0efc70df7828dcf5ecfd31a9d13": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "c4c65d4f7cad9cb420e2445fa134c02e": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "37d22bf9b11d98e90a88d3512e601376": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "82392bb8c03eb8663fa1ce05d2eeee10": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "86869b3eafeb089442cedffab88990c8": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "7b1bfceea96384098829bc6927c7cb20": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "2a92fca0c90adeae6cfcc087912e97ae": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "1e9e5ba9650ec40cb6d458dc72f0ef66": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "4943b87d74698d5530b3be9ca629ef8e": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "07bcd4d5b1a1aaaf9728102c99e30793": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "7d4022289a3943e95292f9448873ed61": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "533cafb999db648b419b37b21c39346b": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "95cc90418393666912fc8f9d48fcedcc": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "ab4ce594ed9b29ed1dcb0493a10077f6": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "6bfe4e8ad12ef21a0331bafbe1c5991a": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "2cef986c4cf081e4ebffa25e28cd33d0": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "ce51e17e8448bbad24c063837556b2e1": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "8ede4a179712f53a8ce4b02e4fd60b2c": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "a0469b5d047e1eac4572ea68e4153b77": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "f3225ac4662e10e72cbbd27e127420f6": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "839e24bfa4e532cf04744289e7948a75": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "dadd7aa0bc3e99fae3e4e84511729f74": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "340eabbd266da857fdadbebfbdc3b1a9": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "4e586eb284c42c9e78b0cf9552d243ed": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "27f5385145516e2fafd9e519b0906eab": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "d3ae188165e9b2ec7961816b3a298134": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "eca8d16090c07cde474893b16d866903": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "3d22cf4d5c5b88dccc34c58b456322f8": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "82eb18843959c106291cd0bc56bf345d": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "7f047b74c823f61da623ba941e142b7b": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "4e9e8b8275f3a757dd5c216013f72940": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "f58a8ce151062ba8abbdb8e2ddc5d371": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "6c66fe7fc4b508f660edb7fa7213a72d": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "e01e75f48ef4974cdf9068a0d3406c53": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "6dd2e39b5e421bf158270b17e7b2a49b": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "db151a600b53613f977674b795cd70dc": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "2b94e31e4ff2b0cce0e22aaa9b50aa4b": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "0687b1d9d1c0c3907dcc3e75b90e63be": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "c4b80f33f6c925ddedaedc33ebe7f597": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "12cd4e9bd6a308795b83bf737c35bc4b": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "bd5aa1cee375fb92394a775a1667aff4": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "a2a1acb064fce9cbb9427bffed7b90de": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "4c29c6dc7c8546776242c2211c038751": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "c9fac58e402ff1cbad7babca7502bbc4": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "d8ff7bd624b8e2682b099b9876a97974": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "3ea29500a196dd86615de692ee376d6d": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "6ca6d42c472ecd011a4cd3405740d843": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "c8f82b96b68f4637196ca56575e34e13": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "0f2aa1cd830b61203fea2144102e601d": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "487b724441485180eaefb606b4345171": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "8e9e511dd1096f842bd8873b1a1539d2": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "42187d4bdcfe84fe1ab19cf2be0cbbf6": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "d408f6c569ae9305416d09170b5bf1be": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "1dbdb3183e32f2e5eb41a71fdd155676": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "f0375f0dd5f217e022ee33b7e1bd72bb": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "85f6b5fed7963966756924d20fc9b665": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "e84b202f4c1a8492ef386f3d380a2be5": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "195abc3b8aa2355951ccbb70ab96044a": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "b2f90937259b250026da65fd54f58214": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "6c2bacbf84d0d4715d73ada0ee2cb409": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "f16854e56357818a5c07097ab93c0723": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "ab8fc4d8b1b08518df690bdc0ff18663": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "610712a4d8daab8bb8e84abcd9877b19": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "74a196f1ddc26296d74d62048513677a": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "9d48d01b637381a2ed64218263cdec0d": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "14d989dfbf5c8526316c9298b67bb4c8": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "97759d7d4489fd7726c6519ba0cf1525": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "e58910883b4f685ccded79b822dab1f1": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "7b11feeaf0b41c47b305d79bfd46459f": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "c64791cf0722af0e576ee25834ad575c": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "7e7a7dd80269160ea3b4c21e24e33e9d": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "b0a57692b615f2f372fb5f664128f0b9": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "f637d59282c1d2029964bf96013c5637": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "54170db9cdd10375d1709383d9130b1e": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "3796535da73743d5901e1e877d4a5b54": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "5e57eacef516e2181a8b2850a2a0244c": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "8063cc63664ec6b9378a3328b6efe5ac": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "aed4771871b05b6f3b549b64b1f50f89": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "983a41c7f5f212eff76dde0a97abe129": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "9b370c9caf40d6e0338c484c757caa74": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "ff96b38708ddccd4690144308f6f8ace": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "3c9c87943ab51995fad78edd4a55e1ca": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "d391f718cf7408ff2b87965920043b05": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "592601becac66a3ca0eac4a3505d9eec": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "f753e366d05d492a54bf55300e058c77": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "743f8cfe933015cadf04ee181f41dd11": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "d084ffa6fefb4e88c288b3d3ff8edce7": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "28ffa6ae11f5ffaf1e6d0ccee0c1e57d": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "d5f3b3fa21a05483acf02df0ddb7a879": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "f892d3d70894bdb8d2a334df4b4e5108": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "2f97c4b404618314ed540b35120dd16d": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "32c96ea80df649fceb824c5629e0fd5d": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "a613bb8717b8d33ae5c1a964ea77b08c": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "2d30b781ad6cc012fa46b9b9e646c3e4": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "83760e6d634af7a8b744013970019971": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "89251b0357e62cef2cf150a6b206c29f": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "680ee7c2fbadb6ecbb02a0d601edabe8": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "9ce58e0400c2257eeb067605f81ed021": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "cd7771a27f9f076651e497e54dade671": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "fd3df8a51f3b86246ab33c7668687114": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "c268725cbe3d5e7191504f45c80b15e1": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "186c61814076863fa23a7296b3860d86": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "a62bd4b577d67cc4bf9ed578e439ee79": {
+    "return": "B",
+    "model": "gpt-4o-mini"
+  },
+  "72c90d0a48013a2c2cfadaaafe9df8d0": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "d8ff3a2641e1f724ca0b627afada8a36": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "0ccd5e4f6daff38adacdc5498e63639d": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "e7d2b375803942af1cbfdb0cb8c8c598": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "95f88255ef85d0c23cca2c61e9079a05": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "aaa49f647225dd8a7956afeb0ec89af1": {
+    "return": "A",
+    "model": "gpt-4o-mini"
+  },
+  "7ec71f65f30a6c0a120941e6f633b0a2": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "552d45c9e15c3486324f25d54d7b7d85": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "b7c90abe59b4b9cf7e07f9c1284b80d6": {
+    "return": "C",
+    "model": "gpt-4o-mini"
+  },
+  "dcd577dbacf026b116ec7011df919bea": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "a4a00c607fe705a2917c1858816396b4": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "70ef7bf899ad9ba9b74c239da5efa49d": {
+    "return": "D",
+    "model": "gpt-4o-mini"
+  },
+  "3da3443fb6fe376f9cb866461865e3e9": {
+    "return": "C",
+    "model": "gpt-4o-mini"
   }
 }

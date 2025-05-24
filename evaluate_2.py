@@ -28,15 +28,15 @@ def query(working_dir, return_context, model=None):
             cheap_model_func=ollama_model_if_cache
         )
     print(rag.query("""
-"Năm 1975, tỉnh nào ở miền Nam Việt Nam được giải phóng cuối cùng?
-
-A. Đồng Nai.    B. Châu Đốc.
-
-C. Bến Tre.    D. Kiên Giang.
+Nhận xét nào dưới đây về phong trào cách mạng 1930-1931 ở Việt Nam là không đúng?
+A.	Đây là phong trào cách mạng có hình thức đấu tranh phong phú, quyết liệt.
+B.	Đây là phong trào cách mạng triệt để, không ảo tưởng vào kẻ thù của dân tộc. 
+C.	Đây là phong trào diễn ra trên quy mô rộng lớn và mang tính thống nhất cao.
+D. Đây là phong trào cách mạng mang đậm tính dân tộc hơn tính giai cấp.
 """, param=QueryParam(mode="local",only_need_context=return_context)))
 
 
-def process_questions(input_file, output_file, working_dir, model=None, debug = False):
+def process_questions(input_file, output_file, working_dir, mode="local", model=None, debug=False):
     df = pd.read_excel(input_file)
 
     llm_answers = []
@@ -47,7 +47,8 @@ def process_questions(input_file, output_file, working_dir, model=None, debug = 
         rag = GraphRAG(
             working_dir=working_dir,
             enable_llm_cache=True,
-            vector_db_storage_cls=MilvusLiteStorge
+            vector_db_storage_cls=MilvusLiteStorge,
+            addon_params = neo4j_config()
         )
     else:
         rag = GraphRAG(
@@ -58,22 +59,22 @@ def process_questions(input_file, output_file, working_dir, model=None, debug = 
             cheap_model_func=ollama_model_if_cache
         )
     for index, row in df.iterrows():
-        question = row["Question"]
+        query = row["Question"]
         correct_answer = row["Answer"].strip()
 
-        query = VALIDATION_PROMPT.format(question=question)
-
-        # Naive RAG flow
-        response = rag.query(query, param=QueryParam(mode="local",only_need_context=False))
+        # Graph RAG flow
+        response = rag.query(query, param=QueryParam(mode=mode,only_need_context=False))
         llm_answers.append(response)
 
         if debug:
-            full_query=rag.query(query, param=QueryParam(mode="local",only_need_context=True))
-            print(f"Question {index} \n - Query: \n {full_query}\n ---> Answer: {response} \n-----------------------\n")
+            full_query=rag.query(query, param=QueryParam(mode=mode,only_need_context=True))
+            print(f"Question {index+1} \n - Query: \n {full_query}\n ---> Answer: {response} \n-----------------------\n")
         if response == correct_answer:
             validation = "✅"
+            print(f"Question {index+1}: ✅\n")
             correct_count += 1
         else:
+            print(f"Question {index+1}: ❌\n")
             validation = "❌"
 
         validations.append(validation)
@@ -85,9 +86,8 @@ def process_questions(input_file, output_file, working_dir, model=None, debug = 
     df.to_excel(output_file, index=False)
 
 
-
 if __name__ == "__main__":
-    query(working_dir='./nano_graphrag_history10', model = 'gpt', return_context=True)
+    query(working_dir='./nano_graphrag_history_entity_alignment_3', model='gpt', return_context=True)
 
-    # process_questions("/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/2017.xlsx",
-    #                   "/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/validation-2017/o1-mini/graph-rag.xlsx", working_dir='./nano_graphrag_history5', model='gpt',debug=True)
+    # process_questions("/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/2017_2018.xlsx",
+    #                   "/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/validation-2017-2018/graphRAG_entity_alignment_rerank_filter.xlsx", working_dir='./nano_graphrag_history_entity_alignment_3', model='gpt', debug=False)

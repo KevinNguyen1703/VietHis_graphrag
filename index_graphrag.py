@@ -16,13 +16,13 @@ def neo4j_config():
 def insert(data):
     graphdb_config=neo4j_config()
     rag = GraphRAG(
-        working_dir="./nano_graphrag_history5",
+        working_dir="./nano_graphrag_history_entity_alignment_3",
         enable_llm_cache=True,
         chunk_func=chunking_by_markers,
         vector_db_storage_cls=MilvusLiteStorge,
         addon_params = graphdb_config,
-        best_model_max_async=1,
-        cheap_model_max_async=1
+        best_model_max_async=8,
+        cheap_model_max_async=8
     )
     rag.insert(data)
 
@@ -30,16 +30,16 @@ if __name__ == "__main__":
     folder_path = "/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/dataset/text-extracted/addition_knowledge"
     file_contents = []
     raw_text = ""
-    with open("/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/dataset/text-extracted/tomtatlichsu12/full.txt", 'r', encoding='utf-8') as file:
+    with open("/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/dataset/text-extracted/lichsu12/full.txt", 'r', encoding='utf-8') as file:
         text = file.read()
         file_contents.append(text)
         raw_text += text
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        if os.path.isfile(file_path):  # Check if it's a file (not a directory)
-            with open(file_path, 'r', encoding='utf-8') as file:
-                text = file.read()
-                file_contents.append(text)
-                raw_text+=f"\nI. {text}"
+    # for filename in os.listdir(folder_path):
+    #     file_path = os.path.join(folder_path, filename)
+    #     if os.path.isfile(file_path):  # Check if it's a file (not a directory)
+    #         with open(file_path, 'r', encoding='utf-8') as file:
+    #             text = file.read()
+    #             file_contents.append(text)
+    #             raw_text+=f"\nI. {text}"
 
     insert(raw_text)

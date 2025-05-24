@@ -163,6 +163,17 @@ async def gpt_4o_complete(
     )
 
 
+async def gpt_35_complete(
+    prompt, system_prompt=None, history_messages=[], **kwargs
+) -> str:
+    return await openai_complete_if_cache(
+        "gpt-3.5",
+        prompt,
+        system_prompt=system_prompt,
+        history_messages=history_messages,
+        **kwargs,
+    )
+
 async def gpt_4o_mini_complete(
     prompt, system_prompt=None, history_messages=[], **kwargs
 ) -> str:

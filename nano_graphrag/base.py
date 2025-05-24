@@ -12,7 +12,7 @@ class QueryParam:
     only_need_context: bool = False
     response_type: str = "Multiple Paragraphs"
     level: int = 2
-    top_k: int = 10
+    top_k: int = 20
     # naive search
     naive_max_token_for_text_unit = 12000
     # local search

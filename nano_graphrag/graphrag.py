@@ -12,6 +12,7 @@ from ._llm import (
     amazon_bedrock_embedding,
     create_amazon_bedrock_complete_function,
     gpt_4o_complete,
+    gpt_35_complete,
     gpt_4o_mini_complete,
     openai_embedding,
     azure_gpt_4o_complete,
@@ -20,7 +21,7 @@ from ._llm import (
 )
 from ._op import (
     chunking_by_token_size,
-    extract_entities,
+    extract_entities, custom_extract_entities,
     generate_community_report,
     get_chunks,
     local_query,
@@ -114,7 +115,7 @@ class GraphRAG:
     using_amazon_bedrock: bool = False
     best_model_id: str = "us.anthropic.claude-3-sonnet-20240229-v1:0"
     cheap_model_id: str = "us.anthropic.claude-3-haiku-20240307-v1:0"
-    best_model_func: callable = gpt_4o_complete
+    best_model_func: callable = gpt_4o_mini_complete
     best_model_max_token_size: int = 32768
     best_model_max_async: int = 16
     cheap_model_func: callable = gpt_4o_mini_complete
@@ -122,13 +123,15 @@ class GraphRAG:
     cheap_model_max_async: int = 16
 
     # entity extraction
-    entity_extraction_func: callable = extract_entities
+    entity_extraction_func: callable = custom_extract_entities
 
     # storage
     key_string_value_json_storage_cls: Type[BaseKVStorage] = JsonKVStorage
     vector_db_storage_cls: Type[BaseVectorStorage] = NanoVectorDBStorage
     vector_db_storage_cls_kwargs: dict = field(default_factory=dict)
-    graph_storage_cls: Type[BaseGraphStorage] = Neo4jStorage
+    # graph_storage_cls: Type[BaseGraphStorage] = Neo4jStorage
+    graph_storage_cls: Type[BaseGraphStorage] = NetworkXStorage
+
     enable_llm_cache: bool = True
 
     # extension
@@ -325,9 +328,9 @@ class GraphRAG:
             self.chunk_entity_relation_graph = maybe_new_kg
             # ---------- update clusterings of graph
             logger.info("[Community Report]...")
-            await self.chunk_entity_relation_graph.clustering(
-                self.graph_cluster_algorithm
-            )
+            # await self.chunk_entity_relation_graph.clustering(
+            #     self.graph_cluster_algorithm
+            # )
             # await generate_community_report(
             #     self.community_reports, self.chunk_entity_relation_graph, asdict(self)
             # )

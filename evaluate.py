@@ -1,6 +1,7 @@
 from nano_graphrag import GraphRAG, QueryParam
 import pandas as pd
 from history_graphrag import MilvusLiteStorge, ollama_model_if_cache
+from index_graphrag import neo4j_config
 
 VALIDATION_PROMPT="""
 Bạn là một trợ lý AI chuyên gia về trả lời câu hỏi trắc nghiệm. Hãy đọc kỹ câu hỏi sau và chỉ trả lời bằng một ký tự đại diện cho đáp án đúng (A, B, C, D). Không giải thích, không đưa thêm thông tin, chỉ trả về một ký tự duy nhất:
@@ -89,7 +90,7 @@ def process_questions(input_file, output_file, working_dir, model=None, debug = 
 
 
 if __name__ == "__main__":
-    query(working_dir='./nano_graphrag_history5', model = 'ollama', return_context=True)
+    query(working_dir='./nano_graphrag_history10', model = 'gpt', return_context=True)
 
-    # process_questions("/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/validation-5.xlsx",
-    #                   "/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/validation-set-5/graphrag-gpt.xlsx", working_dir='./nano_graphrag_history5', model='gpt' ,debug=True)
+    # process_questions("/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/2017.xlsx",
+    #                   "/Users/gumiho/Gumiho/project/AI-project/LocalGraphRAG/HistoryGraphRAG/evaluation/validation-2017/o1-mini/graph-rag.xlsx", working_dir='./nano_graphrag_history5', model='gpt',debug=True)
